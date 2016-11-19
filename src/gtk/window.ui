@@ -1,0 +1,51 @@
+<interface>
+  <template class="MainWindow" parent="GtkApplicationWindow">
+    <property name="default-width">1280</property>
+    <property name="default-height">720</property>
+
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-close-button">true</property>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkStack" id="stack">
+        <property name="transition-type">crossfade</property>
+
+        <child>
+          <object class="GtkBox" id="greeter">
+            <property name="orientation">vertical</property>
+            <property name="spacing">24</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+
+            <child>
+              <object class="GtkImage">
+                <property name="resource">/so/bob131/Videos/data/initial-placeholder.svg</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Drag and drop a video to play, or click anywhere to browse for one</property>
+
+                <style>
+                  <class name="dim-label"/>
+                </style>
+
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkClutterEmbed" id="stage_embed"></object>
+        </child>
+
+      </object>
+    </child>
+
+  </template>
+</interface>

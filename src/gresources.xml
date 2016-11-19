@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/so/bob131/Videos">
+    <file compressed="true">gtk/window.ui</file>
+    <file compressed="true">data/initial-placeholder.svg</file>
+  </gresource>
+</gresources>
