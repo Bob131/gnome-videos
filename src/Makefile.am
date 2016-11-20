@@ -8,9 +8,10 @@ gresources.c: gresources.xml $(resource_files)
 
 gnome_videos_SOURCES = \
 	gnome-videos.vala \
+	controller.vala \
+	pipeline.vala \
 	gresources.c \
-	gtk/window.vala \
-	gtk/player-stage.vala
+	gtk/window.vala
 
 gnome_videos_VALAFLAGS = \
 	--gresources gresources.xml \
