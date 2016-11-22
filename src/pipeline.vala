@@ -12,21 +12,26 @@ class Pipeline : Gst.Pipeline {
 
     void handle_decoder_pad (Gst.Pad pad) {
         Gst.Element? sink = null;
+        Gst.Element? convert = null;
 
         switch (pad.template.name_template) {
             case "video_%u":
                 sink = video_sink;
+                convert = (!) Gst.ElementFactory.make ("videoconvert", null);
                 break;
             case "audio_%u":
                 sink = audio_sink;
+                convert = (!) Gst.ElementFactory.make ("audioconvert", null);
                 break;
         }
 
         if (sink != null) {
-            var sink_ = (!) sink;
-            return_if_fail (this.add (sink_));
+            var sink_ = (!) sink,
+                convert_ = (!) convert;
+            this.add_many (sink_, convert_);
             sink_.set_state (this.current_state);
-            if (decoder.link (sink_))
+            convert_.set_state (this.current_state);
+            if (decoder.link (convert_) && convert_.link (sink_))
                 return;
         }
 
