@@ -77,6 +77,44 @@ class MainWindow : Gtk.ApplicationWindow {
         Controller.get_default ().open_file (File.new_for_uri (uris[0]));
     }
 
+    [GtkCallback]
+    bool greeter_click (Gdk.EventButton event) {
+        // only handle single left-clicks
+        if (event.type != Gdk.EventType.BUTTON_RELEASE || event.button != 1)
+            return false; // propagate event
+
+        var chooser = new Gtk.FileChooserDialog ("Open media", this,
+            Gtk.FileChooserAction.OPEN,
+            "_Cancel", Gtk.ResponseType.CANCEL,
+            "_Open", Gtk.ResponseType.ACCEPT);
+
+        // TODO: enumerate supported file types from Gst.Registry
+
+        var filter = new Gtk.FileFilter ();
+        filter.add_mime_type ("video/*");
+        filter.set_filter_name ("Videos");
+        chooser.add_filter (filter);
+
+        filter = new Gtk.FileFilter ();
+        filter.add_mime_type ("audio/*");
+        filter.set_filter_name ("Audio files");
+        chooser.add_filter (filter);
+
+        // TODO: thumbnail preview
+
+        if (chooser.run () == Gtk.ResponseType.ACCEPT) {
+            var file = chooser.get_file ();
+            Idle.add (() => {
+                open_file (file);
+                return Source.REMOVE;
+            });
+        }
+
+        chooser.destroy ();
+
+        return true;
+    }
+
     public MainWindow () {
         Object (application: (Gtk.Application) Application.get_default (),
             title: "Videos");

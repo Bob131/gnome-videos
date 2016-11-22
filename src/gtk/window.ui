@@ -14,25 +14,33 @@
         <property name="transition-type">crossfade</property>
 
         <child>
-          <object class="GtkBox" id="greeter">
-            <property name="orientation">vertical</property>
-            <property name="spacing">24</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
+          <object class="GtkEventBox" id="greeter">
+            <property name="expand">true</property>
+            <signal name="button-release-event" handler="greeter_click"/>
 
             <child>
-              <object class="GtkImage">
-                <property name="resource">/so/bob131/Videos/data/initial-placeholder.svg</property>
-              </object>
-            </child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">24</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
 
-            <child>
-              <object class="GtkLabel">
-                <property name="label">Drag and drop a video to play, or click anywhere to browse for one</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="resource">/so/bob131/Videos/data/initial-placeholder.svg</property>
+                  </object>
+                </child>
 
-                <style>
-                  <class name="dim-label"/>
-                </style>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Drag and drop a video to play, or click anywhere to browse for one</property>
+
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+
+                  </object>
+                </child>
 
               </object>
             </child>
