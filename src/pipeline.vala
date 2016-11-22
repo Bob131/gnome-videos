@@ -1,46 +1,104 @@
 class Pipeline : Gst.Pipeline {
+    public ClutterGst.VideoSink video_sink {construct; get;}
+
+    Controller controller = Controller.get_default ();
+
     Gst.Element source;
     Gst.Element decoder;
 
-    ClutterGst.VideoSink video_sink;
     Gst.Element audio_sink;
 
+    weak Media media;
+
     void handle_decoder_pad (Gst.Pad pad) {
-        message (pad.template.name_template);
+        Gst.Element? sink = null;
+
         switch (pad.template.name_template) {
-            case "audio_%u":
-                assert (decoder.link (audio_sink));
-                break;
             case "video_%u":
-                assert (decoder.link (video_sink));
+                sink = video_sink;
+                break;
+            case "audio_%u":
+                sink = audio_sink;
+                break;
+        }
+
+        if (sink != null) {
+            var sink_ = (!) sink;
+            return_if_fail (this.add (sink_));
+            sink_.set_state (this.current_state);
+            if (decoder.link (sink_))
+                return;
+        }
+
+        warning ("Failed to link sink for type '%s'",
+            pad.template.name_template.replace ("_%u", ""));
+    }
+
+    void sync_controller_state () {
+        var new_state = (Gst.State) controller.state;
+        if (this.set_state (new_state) == Gst.StateChangeReturn.FAILURE)
+            warning ("State transition failed: %s -> %s",
+                this.current_state.to_string (), new_state.to_string ());
+    }
+
+    new void seek (Nanoseconds pos)
+        requires (this.current_state >= Gst.State.PAUSED)
+        requires (pos <= media.duration)
+    {
+        if (!this.seek_simple (Gst.Format.TIME,
+                Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos))
+            warning ("Seek failed!");
+    }
+
+    void handle_bus_message (Gst.Message message) {
+        switch (message.type) {
+            case Gst.MessageType.ERROR:
+                Error e; string debug;
+                message.parse_error (out e, out debug);
+                warning (debug);
+                error (e);
+                break;
+            case Gst.MessageType.EOS:
+                controller.stop ();
                 break;
         }
     }
 
-    void play_file (File file) {
-        source["uri"] = file.get_uri ();
-        Controller.get_default ().state = PlayerState.PLAYING;
+    [Signal (run = "last")]
+    public virtual signal void error (Error e) {
+        controller.stop ();
     }
 
-    public Pipeline (ClutterGst.VideoSink video_sink) {
-        this.video_sink = video_sink;
+    public Pipeline () {
+        Object (video_sink: new ClutterGst.VideoSink ());
 
         source = (!) Gst.ElementFactory.make ("urisourcebin", "source");
         decoder = (!) Gst.ElementFactory.make ("decodebin3", "decoder");
 
         audio_sink = (!) Gst.ElementFactory.make ("autoaudiosink", null);
 
-        this.add_many (source, decoder, video_sink, audio_sink);
+        this.add_many (source, decoder);
 
-        source.pad_added.connect (() => assert (source.link (decoder)));
+        source.pad_added.connect ((pad) => {
+            if (!source.link (decoder))
+                warning ("Failed to link source to decoder");
+        });
 
         decoder.pad_added.connect (handle_decoder_pad);
 
-        var controller = Controller.get_default ();
+        controller.notify["state"].connect (sync_controller_state);
 
-        controller.notify["state"].connect (
-            () => this.set_state ((Gst.State) controller.state));
+        controller.seek.connect (seek);
 
-        controller.play_file.connect (play_file);
+        var bus = this.get_bus ();
+
+        bus.add_signal_watch ();
+
+        bus.message.connect (handle_bus_message);
+
+        controller.media_opened.connect ((media) => {
+            this.media = media;
+            source["uri"] = media.file.get_uri ();
+        });
     }
 }

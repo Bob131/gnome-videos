@@ -1,0 +1,16 @@
+<interface>
+  <template class="FullscreenButton" parent="GtkButton">
+    <signal name="clicked" handler="toggle_fullscreen"/>
+
+    <style>
+      <class name="flat"/>
+    </style>
+
+    <child>
+      <object class="GtkImage" id="image">
+        <property name="icon-name">view-fullscreen-symbolic</property>
+      </object>
+    </child>
+
+  </template>
+</interface>

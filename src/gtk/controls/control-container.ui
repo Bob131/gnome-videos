@@ -1,0 +1,42 @@
+<interface>
+  <template class="ControlContainer" parent="GtkRevealer">
+    <property name="reveal-child">true</property>
+    <property name="transition-type">slide-up</property>
+    <property name="valign">end</property>
+
+    <child>
+      <object class="GtkEventBox">
+        <signal name="event-after" handler="handle_event"/>
+
+        <child>
+          <object class="GtkBox">
+
+            <style>
+              <class name="osd"/>
+            </style>
+
+            <child>
+              <object class="PlayButton">
+                <property name="margin">6</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="SeekBar"></object>
+            </child>
+
+            <child>
+              <object class="FullscreenButton">
+                <property name="margin">6</property>
+                <signal name="clicked" handler="show_controls"/>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </template>
+</interface>

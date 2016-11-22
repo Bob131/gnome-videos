@@ -9,15 +9,20 @@ gresources.c: gresources.xml $(resource_files)
 gnome_videos_SOURCES = \
 	gnome-videos.vala \
 	controller.vala \
+	media.vala \
 	pipeline.vala \
 	gresources.c \
-	gtk/window.vala
+	gtk/window.vala \
+	gtk/controls/control-container.vala \
+	gtk/controls/play-button.vala \
+	gtk/controls/fullscreen-button.vala \
+	gtk/controls/seek-bar.vala
 
 gnome_videos_VALAFLAGS = \
 	--gresources gresources.xml \
 	$(gnome_videos_U_VALAFLAGS)
 
-gnome_videos_CFLAGS = $(gnome_videos_U_CFLAGS)
+gnome_videos_CFLAGS = $(gnome_videos_U_CFLAGS) -rdynamic
 
 gnome_videos_LDFLAGS = $(gnome_videos_U_LIBS)
 

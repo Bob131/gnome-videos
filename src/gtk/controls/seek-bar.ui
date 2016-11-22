@@ -1,0 +1,6 @@
+<interface>
+  <template class="SeekBar" parent="GtkScale">
+    <property name="hexpand">true</property>
+    <property name="draw-value">false</property>
+  </template>
+</interface>

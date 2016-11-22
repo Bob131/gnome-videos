@@ -41,7 +41,17 @@
         </child>
 
         <child>
-          <object class="GtkClutterEmbed" id="stage_embed"></object>
+          <object class="GtkOverlay" id="overlay">
+
+            <child type="overlay">
+              <object class="ControlContainer" id="controls"></object>
+            </child>
+
+            <child>
+              <object class="GtkClutterEmbed" id="stage_embed"></object>
+            </child>
+
+          </object>
         </child>
 
       </object>

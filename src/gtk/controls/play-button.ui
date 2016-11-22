@@ -1,0 +1,16 @@
+<interface>
+  <template class="PlayButton" parent="GtkButton">
+    <signal name="clicked" handler="state_toggle"/>
+
+    <style>
+      <class name="flat"/>
+    </style>
+
+    <child>
+      <object class="GtkImage" id="image">
+        <property name="icon-name">media-playback-pause-symbolic</property>
+      </object>
+    </child>
+
+  </template>
+</interface>
