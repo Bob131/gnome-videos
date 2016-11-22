@@ -45,8 +45,7 @@ class Pipeline : Gst.Pipeline {
         requires (this.current_state >= Gst.State.PAUSED)
         requires (pos <= media.duration)
     {
-        if (!this.seek_simple (Gst.Format.TIME,
-                Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, pos))
+        if (!this.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, pos))
             warning ("Seek failed!");
     }
 
