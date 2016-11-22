@@ -22,9 +22,12 @@ class FullscreenButton : Gtk.Button {
         window = (Gtk.Window) this.get_toplevel ();
 
         window.window_state_event.connect ((ev) => {
-            fullscreen = Gdk.WindowState.FULLSCREEN in ev.changed_mask;
+            if (Gdk.WindowState.FULLSCREEN in ev.changed_mask)
+                fullscreen = !fullscreen;
+
             image.icon_name = fullscreen ? "view-restore-symbolic"
                 : "view-fullscreen-symbolic";
+
             return false;
         });
     }
