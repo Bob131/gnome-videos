@@ -81,7 +81,7 @@ class MainWindow : Gtk.ApplicationWindow {
     bool greeter_click (Gdk.EventButton event) {
         // only handle single left-clicks
         if (event.type != Gdk.EventType.BUTTON_RELEASE || event.button != 1)
-            return false; // propagate event
+            return Gdk.EVENT_PROPAGATE;
 
         var chooser = new Gtk.FileChooserDialog ("Open media", this,
             Gtk.FileChooserAction.OPEN,
