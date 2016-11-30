@@ -1,16 +1,36 @@
 class Pipeline : Gst.Pipeline {
+    public weak Media media {construct; get;}
     public ClutterGst.VideoSink video_sink {construct; get;}
-
-    Controller controller = Controller.get_default ();
 
     Gst.Element source;
     Gst.Element decoder;
 
     Gst.Element audio_sink;
 
-    weak Media media;
+    public signal void event (Event event);
 
     void handle_decoder_pad (Gst.Pad pad) {
+        pad.add_probe (Gst.PadProbeType.EVENT_BOTH, (pad, info) => {
+            var event = info.get_event ();
+
+            unowned Gst.Structure event_structure =
+                (Gst.Structure?) event.get_structure () != null ?
+                    event.get_structure ().copy ()
+                    : new Gst.Structure.empty ("empty");
+
+            var event_copy = new Gst.Event.custom (event.type,
+                event_structure.copy ());
+            event_copy.seqnum = event.seqnum;
+            event_copy.timestamp = event.timestamp;
+
+            Idle.add (() => {
+                this.event (new PadEvent (event_copy));
+                return Source.REMOVE;
+            });
+
+            return Gst.PadProbeReturn.OK;
+        });
+
         Gst.Element? sink = null;
         Gst.Element? convert = null;
 
@@ -40,13 +60,13 @@ class Pipeline : Gst.Pipeline {
     }
 
     void sync_controller_state () {
-        var new_state = (Gst.State) controller.state;
+        var new_state = (Gst.State) media.playback_controller.state;
         if (this.set_state (new_state) == Gst.StateChangeReturn.FAILURE)
             warning ("State transition failed: %s -> %s",
                 this.current_state.to_string (), new_state.to_string ());
     }
 
-    new void seek (Nanoseconds pos)
+    public new void seek (Nanoseconds pos)
         requires (this.current_state >= Gst.State.PAUSED)
         requires (pos <= media.duration)
     {
@@ -63,18 +83,20 @@ class Pipeline : Gst.Pipeline {
                 error (e);
                 break;
             case Gst.MessageType.EOS:
-                controller.stop ();
+                media.playback_controller.pause ();
                 break;
         }
+
+        event (new BusEvent (message));
     }
 
     [Signal (run = "last")]
     public virtual signal void error (Error e) {
-        controller.stop ();
+        AppController.get_default ().media_closed ();
     }
 
-    public Pipeline () {
-        Object (video_sink: new ClutterGst.VideoSink ());
+    public Pipeline (Media media) {
+        Object (media: media, video_sink: new ClutterGst.VideoSink ());
 
         source = (!) Gst.ElementFactory.make ("urisourcebin", "source");
         decoder = (!) Gst.ElementFactory.make ("decodebin3", "decoder");
@@ -90,19 +112,13 @@ class Pipeline : Gst.Pipeline {
 
         decoder.pad_added.connect (handle_decoder_pad);
 
-        controller.notify["state"].connect (sync_controller_state);
-
-        controller.seek.connect (seek);
+        media.playback_controller.notify["state"].connect (
+            sync_controller_state);
 
         var bus = this.get_bus ();
-
         bus.add_signal_watch ();
-
         bus.message.connect (handle_bus_message);
 
-        controller.media_opened.connect ((media) => {
-            this.media = media;
-            source["uri"] = media.file.get_uri ();
-        });
+        source["uri"] = media.file.get_uri ();
     }
 }

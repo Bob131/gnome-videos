@@ -14,7 +14,7 @@ class Videos : Gtk.Application {
         if (files.length > 1)
             warning ("Playlists not (yet) supported. Playing first file");
 
-        Controller.get_default ().open_file (files[0]);
+        AppController.get_default ().open_file (files[0]);
     }
 
     Videos () {

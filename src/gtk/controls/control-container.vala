@@ -3,7 +3,7 @@ class ControlContainer : Gtk.Revealer {
     bool should_reveal = true;
     bool mouse_over = false;
 
-    Controller controller = Controller.get_default ();
+    AppController controller = AppController.get_default ();
 
     [GtkCallback]
     void show_controls () {
@@ -26,7 +26,8 @@ class ControlContainer : Gtk.Revealer {
         Timeout.add (500, () => {
             this.reveal_child = should_reveal;
 
-            if (should_reveal && controller.state == PlayerState.PLAYING
+            if (should_reveal && controller.media_loaded
+                    && controller.playback.state == PlayerState.PLAYING
                     && !mouse_over)
                 should_reveal = false;
 

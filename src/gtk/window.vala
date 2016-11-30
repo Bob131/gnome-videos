@@ -1,8 +1,7 @@
 [GtkTemplate (ui = "/so/bob131/Videos/gtk/window.ui")]
 class MainWindow : Gtk.ApplicationWindow {
-    Pipeline pipeline;
     Clutter.Actor stage;
-    Controller controller = Controller.get_default ();
+    AppController controller = AppController.get_default ();
 
     [GtkChild]
     Gtk.Stack stack;
@@ -17,15 +16,17 @@ class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     ControlContainer controls;
 
-    void update_state (PlayerState state) {
-        if (state == PlayerState.STOPPED)
-            this.unfullscreen ();
-        stack.visible_child = state == PlayerState.STOPPED ? greeter : overlay;
+    void media_closed () {
+        this.unfullscreen ();
+        this.title = "Videos";
+        stage.set_content (null);
+        stack.visible_child = greeter;
     }
 
-    void update_title () {
-        this.title = controller.now_playing == null ? "Videos"
-            : (!) ((!) controller.now_playing).file.get_basename ();
+    void update_title (string tag_name) {
+        if (tag_name == Gst.Tags.TITLE)
+            this.title = (string) controller.playback.now_playing.tags[tag_name]
+                .nth_data (0).@value;
     }
 
     void display_error (Error e) {
@@ -36,26 +37,16 @@ class MainWindow : Gtk.ApplicationWindow {
         dialog.destroy ();
     }
 
-    void clean_up_pipeline () {
-        if ((void*) pipeline != null)
-            pipeline.set_state (Gst.State.NULL);
-    }
-
-    void open_file (File file) {
-        clean_up_pipeline ();
-
-        pipeline = new Pipeline ();
-        pipeline.error.connect (display_error);
+    void handle_media (Media media) {
+        media.pipeline.error.connect (display_error);
 
         var content = new ClutterGst.Aspectratio ();
         stage.content = content;
-        content.sink = pipeline.video_sink;
+        content.sink = media.pipeline.video_sink;
 
-        var media = new Media (file, pipeline);
-        media.got_title.connect (update_title);
+        media.tags.tag_added.connect (update_title);
 
-        controller.media_opened (media);
-
+        stack.visible_child = overlay;
         controls.activity ();
     }
 
@@ -74,7 +65,7 @@ class MainWindow : Gtk.ApplicationWindow {
         if (uris.length > 1)
             warning ("Playlists not (yet) supported. Playing first file");
 
-        Controller.get_default ().open_file (File.new_for_uri (uris[0]));
+        controller.open_file (File.new_for_uri (uris[0]));
     }
 
     [GtkCallback]
@@ -105,7 +96,7 @@ class MainWindow : Gtk.ApplicationWindow {
         if (chooser.run () == Gtk.ResponseType.ACCEPT) {
             var file = chooser.get_file ();
             Idle.add (() => {
-                open_file (file);
+                controller.open_file (file);
                 return Source.REMOVE;
             });
         }
@@ -122,9 +113,8 @@ class MainWindow : Gtk.ApplicationWindow {
         stage = stage_embed.get_stage ();
         stage.background_color = {0, 0, 0, 0};
 
-        controller.state_changed.connect (update_state);
-
-        controller.open_file.connect (open_file);
+        controller.media_opened.connect (handle_media);
+        controller.media_closed.connect_after (media_closed);
 
         stage_embed.event_after.connect ((ev) => {
             if (ev.type == Gdk.EventType.MOTION_NOTIFY)
@@ -136,7 +126,7 @@ class MainWindow : Gtk.ApplicationWindow {
         Gtk.drag_dest_set (this, Gtk.DestDefaults.ALL, {}, Gdk.DragAction.COPY);
         Gtk.drag_dest_set_target_list (this, drop_targets);
 
-        this.destroy.connect (clean_up_pipeline);
+        this.destroy.connect (() => controller.media_closed ());
 
         this.show_all ();
     }
