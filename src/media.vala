@@ -45,9 +45,14 @@ class Media : Object {
     public Pipeline pipeline {private set; get;}
 
     public Nanoseconds duration {private set; get;}
+    public Gst.StreamCollection streams {private set; get;}
 
     public virtual signal void got_duration (Nanoseconds duration) {
         this.duration = duration;
+    }
+
+    public virtual signal void got_streams (Gst.StreamCollection streams) {
+        this.streams = streams;
     }
 
     void handle_message (Event event) {
@@ -63,6 +68,10 @@ class Media : Object {
                     pipeline.query_duration (Gst.Format.TIME, out tmp));
                 got_duration (tmp);
 
+                break;
+
+            case EventType.STREAM_COLLECTION:
+                got_streams (event.parse_streams ());
                 break;
 
             case EventType.TAG:

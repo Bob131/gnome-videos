@@ -10,6 +10,9 @@ class Pipeline : Gst.Pipeline {
     public signal void event (Event event);
 
     void handle_decoder_pad (Gst.Pad pad) {
+        if ((void*) pad.template == null)
+            return;
+
         pad.add_probe (Gst.PadProbeType.EVENT_BOTH, (pad, info) => {
             var event = info.get_event ();
 
@@ -37,20 +40,25 @@ class Pipeline : Gst.Pipeline {
         switch (pad.template.name_template) {
             case "video_%u":
                 sink = video_sink;
-                convert = (!) Gst.ElementFactory.make ("videoconvert", null);
+                convert = Gst.ElementFactory.make ("videoconvert", null);
                 break;
             case "audio_%u":
                 sink = audio_sink;
-                convert = (!) Gst.ElementFactory.make ("audioconvert", null);
+                convert = Gst.ElementFactory.make ("audioconvert", null);
                 break;
         }
 
         if (sink != null) {
+            return_if_fail (convert != null);
+
             var sink_ = (!) sink,
                 convert_ = (!) convert;
+
             this.add_many (sink_, convert_);
+
             sink_.set_state (this.current_state);
             convert_.set_state (this.current_state);
+
             if (decoder.link (convert_) && convert_.link (sink_))
                 return;
         }
@@ -82,12 +90,72 @@ class Pipeline : Gst.Pipeline {
                 warning (debug);
                 error (e);
                 break;
+
             case Gst.MessageType.EOS:
                 media.playback_controller.pause ();
                 break;
         }
 
         event (new BusEvent (message));
+    }
+
+    bool has_video;
+
+    void detect_video (Gst.StreamCollection streams) {
+        has_video = false;
+
+        for (var i = 0; i < streams.get_size (); i++)
+            if (Gst.StreamType.VIDEO in streams.get_stream (i).stream_type) {
+                has_video = true;
+                return;
+            }
+    }
+
+    void handle_cover (string tag) {
+        if (has_video || tag != Gst.Tags.IMAGE)
+            return;
+
+        Gst.Sample? cover_sample = null;
+
+        foreach (var sample_wrapper in media.tags[Gst.Tags.IMAGE]) {
+            var sample = (Gst.Sample) sample_wrapper.@value;
+
+            var caps_ = sample.get_caps ();
+            if (caps_ == null)
+                continue;
+            var caps = (!) caps_;
+
+            int image_type = Gst.Tag.ImageType.UNDEFINED;
+            caps.get_structure (0).get_enum ("image-type",
+                typeof (Gst.Tag.ImageType), out image_type);
+
+            if (image_type == Gst.Tag.ImageType.FRONT_COVER) {
+                cover_sample = sample;
+                break;
+            } else if (image_type == Gst.Tag.ImageType.UNDEFINED
+                    && cover_sample == null)
+                cover_sample = sample;
+        }
+
+        if (cover_sample == null || ((!) cover_sample).get_buffer () == null)
+            return;
+
+        has_video = true;
+
+        // TODO: fix seek failed warning
+
+        var source = (Gst.App.Src) Gst.ElementFactory.make ("appsrc", null);
+
+        var template = new Gst.PadTemplate ("sink_%u", Gst.PadDirection.SINK,
+            Gst.PadPresence.REQUEST, (!) ((!) cover_sample).get_caps ());
+        decoder.request_pad (template, null, null);
+
+        this.add (source);
+        return_if_fail (source.link (decoder));
+
+        source.set_state (this.current_state);
+
+        source.push_sample ((!) cover_sample);
     }
 
     [Signal (run = "last")]
@@ -114,6 +182,9 @@ class Pipeline : Gst.Pipeline {
 
         media.playback_controller.notify["state"].connect (
             sync_controller_state);
+
+        media.got_streams.connect (detect_video);
+        media.tags.tag_added.connect (handle_cover);
 
         var bus = this.get_bus ();
         bus.add_signal_watch ();

@@ -25,12 +25,16 @@ PKG_CHECK_MODULES(gnome_videos_U, [
   gtk+-3.0 >= $GTK_REQUIRED
   clutter-gtk-1.0
   clutter-gst-3.0
+  gstreamer-tag-1.0
+  gstreamer-app-1.0
 ])
 
 AC_SUBST([gnome_videos_U_VALAFLAGS], ["--pkg gio-2.0 \
           --pkg gtk+-3.0 \
           --pkg clutter-gtk-1.0 \
           --pkg clutter-gst-3.0 \
+          --pkg gstreamer-tag-1.0 \
+          --pkg gstreamer-app-1.0 \
           --target-glib=$GLIB_REQUIRED \
           --fatal-warnings \
           --enable-checking \
