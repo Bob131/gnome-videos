@@ -25,8 +25,8 @@ class MainWindow : Gtk.ApplicationWindow {
 
     void update_title (string tag_name) {
         if (tag_name == Gst.Tags.TITLE)
-            this.title = (string) controller.playback.now_playing.tags[tag_name]
-                .nth_data (0).@value;
+            this.title =
+                (string) controller.playback.now_playing.tags[tag_name];
     }
 
     void display_error (Error e) {
@@ -44,7 +44,7 @@ class MainWindow : Gtk.ApplicationWindow {
         stage.content = content;
         content.sink = media.pipeline.video_sink;
 
-        media.tags.tag_added.connect (update_title);
+        media.tags.tag_updated.connect (update_title);
 
         stack.visible_child = overlay;
         controls.activity ();

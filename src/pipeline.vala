@@ -117,13 +117,10 @@ class Pipeline : Gst.Pipeline {
 
         Gst.Sample? cover_sample = null;
 
-        foreach (var sample_wrapper in media.tags[Gst.Tags.IMAGE]) {
+        foreach (var sample_wrapper in media.tags.get_list (Gst.Tags.IMAGE)) {
             var sample = (Gst.Sample) sample_wrapper.@value;
 
-            var caps_ = sample.get_caps ();
-            if (caps_ == null)
-                continue;
-            var caps = (!) caps_;
+            Gst.Caps caps = null_cast (sample.get_caps ());
 
             int image_type = Gst.Tag.ImageType.UNDEFINED;
             caps.get_structure (0).get_enum ("image-type",
@@ -144,7 +141,8 @@ class Pipeline : Gst.Pipeline {
 
         // TODO: fix seek failed warning
 
-        var source = (Gst.App.Src) Gst.ElementFactory.make ("appsrc", null);
+        Gst.App.Src source = null_cast (
+            Gst.ElementFactory.make ("appsrc", null));
 
         var template = new Gst.PadTemplate ("sink_%u", Gst.PadDirection.SINK,
             Gst.PadPresence.REQUEST, (!) ((!) cover_sample).get_caps ());
@@ -166,10 +164,11 @@ class Pipeline : Gst.Pipeline {
     public Pipeline (Media media) {
         Object (media: media, video_sink: new ClutterGst.VideoSink ());
 
-        source = (!) Gst.ElementFactory.make ("urisourcebin", "source");
-        decoder = (!) Gst.ElementFactory.make ("decodebin3", "decoder");
+        source = null_cast (Gst.ElementFactory.make ("urisourcebin", "source"));
+        decoder = null_cast (Gst.ElementFactory.make ("decodebin3", "decoder"));
 
-        audio_sink = (!) Gst.ElementFactory.make ("autoaudiosink", null);
+        audio_sink =
+            null_cast (Gst.ElementFactory.make ("autoaudiosink", null));
 
         this.add_many (source, decoder);
 
@@ -184,7 +183,7 @@ class Pipeline : Gst.Pipeline {
             sync_controller_state);
 
         media.got_streams.connect (detect_video);
-        media.tags.tag_added.connect (handle_cover);
+        media.tags.tag_updated.connect (handle_cover);
 
         var bus = this.get_bus ();
         bus.add_signal_watch ();

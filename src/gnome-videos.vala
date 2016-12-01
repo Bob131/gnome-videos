@@ -1,3 +1,11 @@
+// at run time, T and N should be the same, but valac thinks they differ in
+// that N is nullable, whereas T is not (or shouldn't be)
+T null_cast<T,N> (N nullable) {
+    if (nullable == null)
+        critical ("Null check for type %s failed", typeof (T).name ());
+    return (T) nullable;
+}
+
 class Videos : Gtk.Application {
     MainWindow window;
 

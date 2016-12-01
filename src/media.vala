@@ -15,25 +15,30 @@ class Tags : Object {
     HashTable<string, List<ValueWrapper>> table =
         new HashTable<string, List<ValueWrapper>> (str_hash, str_equal);
 
-    public new unowned List<ValueWrapper> @get (string tag) {
+    public new unowned Value @get (string tag) {
+        return table[tag].data.@value;
+    }
+
+    public unowned List<ValueWrapper> get_list (string tag) {
         return table[tag];
     }
 
-    public signal void tag_added (string name);
+    public signal void tag_updated (string name);
 
     public void add (Gst.TagList tags) {
         tags.foreach ((_, tag) => {
             var list = table.take (tag);
-            unowned Value? @value;
-            for (var i = 0; (@value = tags.get_value_index (tag, i)) != null;
-                i++)
-            {
-                var owned_value = Value (((!) @value).type ());
-                ((!) @value).copy (ref owned_value);
-                list.prepend (new ValueWrapper (owned_value));
-            }
+
+            Value owned_value;
+            Gst.Tags.list_copy_value (out owned_value, tags, tag);
+
+            if (list.length () > 0 && Gst.Tags.is_fixed (tag))
+                list.data = new ValueWrapper ((owned) owned_value);
+            else
+                list.prepend (new ValueWrapper ((owned) owned_value));
+
             table[tag] = (owned) list;
-            tag_added (tag);
+            tag_updated (tag);
         });
     }
 }
