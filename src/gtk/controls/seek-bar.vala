@@ -1,34 +1,75 @@
-// TODO: add textual time label
-
 [GtkTemplate (ui = "/so/bob131/Videos/gtk/controls/seek-bar.ui")]
-class SeekBar : Gtk.Scale {
+class SeekBar : Gtk.Overlay {
     AppController controller = AppController.get_default ();
-    ulong got_duration_handler;
+    Nanoseconds duration;
+
+    [GtkChild]
+    Gtk.Scale scale;
+    [GtkChild]
+    Gtk.Label label;
+
+    string format_time (Nanoseconds time) {
+        var ret = time < 0 ? "-" : "";
+        time = time.abs ();
+
+        var seconds = (time / Gst.SECOND) % 60,
+            minutes = (time / (Gst.SECOND * 60)) % 60,
+            hours = time / (Gst.SECOND * 3600);
+
+        if (hours > 0)
+            ret += @"%02$(int64.FORMAT):".printf (hours);
+
+        ret += @"%02$(int64.FORMAT):%02$(int64.FORMAT)".printf (minutes,
+            seconds);
+
+        return ret;
+    }
+
+    void update_label () {
+        if (!controller.media_loaded) {
+            duration = 0;
+            label.label = "";
+            return;
+        }
+
+        var now = format_time (controller.playback.position),
+            till_end = format_time (controller.playback.position - duration);
+        label.label = @"<small>$now / $till_end</small>";
+    }
 
     void update_bar () {
         if (!controller.media_loaded) {
-            this.set_value (0);
-            this.set_range (0, 0);
+            duration = 0;
+            scale.set_value (0);
+            scale.set_range (0, 0);
             return;
-        } else
-            this.set_value (controller.playback.position);
+        }
+
+        scale.set_value (controller.playback.position);
+    }
+
+    void got_duration_handler (Media media, Nanoseconds duration) {
+        this.duration = duration;
+        scale.set_range (0, duration);
+        media.got_duration.disconnect (got_duration_handler);
     }
 
     construct {
-        controller.media_opened.connect ((media) => {
-            got_duration_handler = media.got_duration.connect ((duration) => {
-                this.set_range (0, duration);
-                SignalHandler.disconnect (media, got_duration_handler);
-                got_duration_handler = 0;
-            });
-        });
+        controller.media_opened.connect ((media) =>
+            media.got_duration.connect (got_duration_handler));
 
-        this.change_value.connect_after (() => {
-            controller.playback.position = (Nanoseconds) this.get_value ();
+        scale.change_value.connect_after (() => {
+            controller.playback.position = (Nanoseconds) scale.get_value ();
+            update_label ();
         });
 
         Timeout.add (200, () => {
             update_bar ();
+            return Source.CONTINUE;
+        });
+
+        Timeout.add (1000, () => {
+            update_label ();
             return Source.CONTINUE;
         });
     }

@@ -1,6 +1,24 @@
 <interface>
-  <template class="SeekBar" parent="GtkScale">
-    <property name="hexpand">true</property>
-    <property name="draw-value">false</property>
+  <template class="SeekBar" parent="GtkOverlay">
+
+    <child>
+      <object class="GtkScale" id="scale">
+        <property name="hexpand">true</property>
+        <property name="draw-value">false</property>
+      </object>
+    </child>
+
+    <child type="overlay">
+      <object class="GtkLabel" id="label">
+        <property name="valign">end</property>
+        <property name="use-markup">true</property>
+
+        <style>
+          <class name="dim-label"/>
+        </style>
+
+      </object>
+    </child>
+
   </template>
 </interface>

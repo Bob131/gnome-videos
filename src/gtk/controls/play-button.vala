@@ -14,12 +14,11 @@ class PlayButton : Gtk.Button {
     }
 
     construct {
-        controller.media_opened.connect (() => {
+        controller.media_opened.connect (() =>
             controller.playback.state_changed.connect ((state) => {
                 image.icon_name = state == PlayerState.PLAYING
                     ? "media-playback-pause-symbolic"
                     : "media-playback-start-symbolic";
-            });
-        });
+            }));
     }
 }
