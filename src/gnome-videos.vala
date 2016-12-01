@@ -2,7 +2,7 @@
 // that N is nullable, whereas T is not (or shouldn't be)
 T null_cast<T,N> (N nullable) {
     if (nullable == null)
-        critical ("Null check for type %s failed", typeof (T).name ());
+        critical ("null check for type %s failed", typeof (T).name ());
     return (T) nullable;
 }
 

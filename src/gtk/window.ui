@@ -56,7 +56,7 @@
             </child>
 
             <child>
-              <object class="GtkClutterEmbed" id="stage_embed"></object>
+              <object class="StageEmbed" id="stage_embed"></object>
             </child>
 
           </object>

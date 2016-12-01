@@ -11,7 +11,7 @@ class MainWindow : Gtk.ApplicationWindow {
     Gtk.Overlay overlay;
 
     [GtkChild]
-    GtkClutter.Embed stage_embed;
+    StageEmbed stage_embed;
 
     [GtkChild]
     ControlContainer controls;
@@ -116,10 +116,7 @@ class MainWindow : Gtk.ApplicationWindow {
         controller.media_opened.connect (handle_media);
         controller.media_closed.connect_after (media_closed);
 
-        stage_embed.event_after.connect ((ev) => {
-            if (ev.type == Gdk.EventType.MOTION_NOTIFY)
-                controls.activity ();
-        });
+        stage_embed.motion.connect (() => controls.activity ());
 
         var drop_targets = new Gtk.TargetList (null);
         drop_targets.add_uri_targets (0);

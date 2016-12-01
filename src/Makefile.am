@@ -14,6 +14,7 @@ gnome_videos_SOURCES = \
 	pipeline.vala \
 	gresources.c \
 	gtk/window.vala \
+	gtk/stage-embed.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \
 	gtk/controls/fullscreen-button.vala \
