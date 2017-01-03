@@ -125,6 +125,8 @@ class MainWindow : Gtk.ApplicationWindow {
 
         this.destroy.connect (() => controller.media_closed ());
 
+        Gtk.Window.set_default_icon_name ("so.bob131.Videos");
+
         this.show_all ();
     }
 }

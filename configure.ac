@@ -50,5 +50,7 @@ dnl ###########################################################################
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+data/Makefile
+data/so.bob131.Videos.desktop
 ])
 AC_OUTPUT
