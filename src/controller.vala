@@ -10,6 +10,8 @@ class AppController : Object {
         get { return (PlaybackController?) playback != null; }
     }
 
+    public bool fullscreen {set; get;}
+
     public signal void media_opened (Media media);
 
     public void open_file (File file) {

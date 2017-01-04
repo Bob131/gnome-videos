@@ -1,5 +1,6 @@
 class StageEmbed : GtkClutter.Embed {
     Timer timer;
+    AppController controller = AppController.get_default ();
 
     public signal void motion ();
 
@@ -26,6 +27,15 @@ class StageEmbed : GtkClutter.Embed {
             case Gdk.EventType.LEAVE_NOTIFY:
                 timer.stop ();
                 timer.reset ();
+                break;
+
+            case Gdk.EventType.DOUBLE_BUTTON_PRESS:
+                uint button;
+                event.get_button (out button);
+
+                if (button == 1)
+                    controller.fullscreen = !controller.fullscreen;
+
                 break;
         }
     }

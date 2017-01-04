@@ -17,7 +17,6 @@ class MainWindow : Gtk.ApplicationWindow {
     ControlContainer controls;
 
     void media_closed () {
-        this.unfullscreen ();
         this.title = "Videos";
         stage.set_content (null);
         stack.visible_child = greeter;
@@ -115,6 +114,13 @@ class MainWindow : Gtk.ApplicationWindow {
 
         controller.media_opened.connect (handle_media);
         controller.media_closed.connect_after (media_closed);
+
+        controller.notify["fullscreen"].connect (() => {
+            if (controller.fullscreen)
+                this.fullscreen ();
+            else
+                this.unfullscreen ();
+        });
 
         stage_embed.motion.connect (() => controls.activity ());
 
