@@ -1,0 +1,48 @@
+Name:           gnome-videos
+Version:        @VERSION@
+Release:        1%{?dist}
+Summary:        A video player for the GNOME Desktop
+
+License:        GPLv3
+URL:            https://github.com/Bob131/gnome-videos
+Source0:        %{url}/archive/%{version}.tar.gz
+
+BuildRequires:  vala >= @VALA_REQUIRED@
+BuildRequires:  gtk3-devel >= @GTK_REQUIRED@
+BuildRequires:  clutter-gtk-devel
+BuildRequires:  clutter-gst3-devel
+BuildRequires:  gstreamer1-plugins-base-devel
+
+BuildRequires:  python3
+BuildRequires:  librsvg2-tools
+
+%description
+A video player for the GNOME Desktop aiming to leverage new technologies from
+the GNOME ecosystem.
+
+
+%prep
+%autosetup
+
+
+%build
+NOCONFIGURE=1 ./autogen.sh
+%configure
+%make_build
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%make_install
+
+
+%posttrans
+update-desktop-database %{_datadir}/applications &>/dev/null || :
+gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
+
+%files
+%{_bindir}/gnome-videos
+%{_datadir}/applications/so.bob131.Videos.desktop
+%{_datadir}/icons/hicolor/*/apps/*
+%license LICENSE

@@ -6,7 +6,11 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
 
-AM_PROG_VALAC([0.33.1])
+VALA_REQUIRED=0.33.1
+AC_SUBST([VALA_REQUIRED], [$VALA_REQUIRED])
+
+AM_PROG_VALAC([$VALA_REQUIRED])
+
 AM_PROG_CC_C_O
 
 CFLAGS="$CFLAGS -w"
@@ -17,6 +21,8 @@ dnl ###########################################################################
 
 GLIB_REQUIRED=2.40.0
 GTK_REQUIRED=3.22
+
+AC_SUBST([GTK_REQUIRED], [$GTK_REQUIRED])
 
 PKG_CHECK_MODULES(gnome_videos_U, [
   glib-2.0 >= $GLIB_REQUIRED
@@ -49,6 +55,7 @@ dnl ###########################################################################
 
 AC_CONFIG_FILES([
 Makefile
+gnome-videos.spec
 src/Makefile
 data/Makefile
 data/so.bob131.Videos.desktop
