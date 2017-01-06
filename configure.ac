@@ -1,7 +1,9 @@
-AC_INIT([gnome-videos], [0.1])
+AC_INIT([gnome-videos], [0.1.1])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
+
+AC_CANONICAL_SYSTEM
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
@@ -14,6 +16,8 @@ AM_PROG_VALAC([$VALA_REQUIRED])
 AM_PROG_CC_C_O
 
 CFLAGS="$CFLAGS -w"
+
+AM_CONDITIONAL([CPU_x86], [test "$host_cpu" = "x86_64"])
 
 dnl ###########################################################################
 dnl Dependencies
@@ -34,6 +38,13 @@ PKG_CHECK_MODULES(gnome_videos_U, [
   gstreamer-tag-1.0
   gstreamer-app-1.0
 ])
+
+if test "$host_cpu" = "x86_64"; then
+  PKG_CHECK_MODULES(va_libs_U, [
+    libva-wayland
+    libva-x11
+  ])
+fi
 
 AC_SUBST([gnome_videos_U_VALAFLAGS], ["--pkg gio-2.0 \
           --pkg gtk+-3.0 \

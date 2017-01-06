@@ -28,4 +28,20 @@ gnome_videos_CFLAGS = $(gnome_videos_U_CFLAGS) -rdynamic
 
 gnome_videos_LDFLAGS = $(gnome_videos_U_LIBS)
 
+if CPU_x86
+gnome_videos_SOURCES += \
+	vaapi-workaround/cpuid.vapi \
+	vaapi-workaround/vaapi.vapi \
+	vaapi-workaround/wayland.vapi \
+	vaapi-workaround/vaapi-workaround.vala
+
+gnome_videos_VALAFLAGS += \
+	-D CPU_x86 \
+	--pkg x11
+
+gnome_videos_CFLAGS += $(va_libs_U_CFLAGS)
+
+gnome_videos_LDFLAGS += $(va_libs_U_LIBS)
+endif
+
 -include $(top_srcdir)/git.mk

@@ -32,6 +32,11 @@ class Videos : Gtk.Application {
 
     static int main (string[] args) {
         ClutterGst.init (ref args);
+
+#if CPU_x86
+        vaapi_workaround ();
+#endif
+
         return new Videos ().run (args);
     }
 }

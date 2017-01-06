@@ -16,6 +16,12 @@ BuildRequires:  gstreamer1-plugins-base-devel
 BuildRequires:  python3
 BuildRequires:  librsvg2-tools
 
+%ifarch x86_64
+BuildRequires:  libva-devel
+BuildRequires:  libX11-devel
+BuildRequires:  wayland-devel
+%endif
+
 %description
 A video player for the GNOME Desktop aiming to leverage new technologies from
 the GNOME ecosystem.
