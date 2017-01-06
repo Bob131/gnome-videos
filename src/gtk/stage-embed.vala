@@ -1,8 +1,12 @@
 class StageEmbed : GtkClutter.Embed {
+    public ControlContainer controls {private set; get;}
+
     Timer timer;
     AppController controller = AppController.get_default ();
 
-    public signal void motion ();
+    GtkClutter.Actor controls_actor;
+
+    int controls_preferred_height = 0;
 
     void show_cursor () {
         Gdk.Window window = null_cast (this.get_window ());
@@ -20,7 +24,7 @@ class StageEmbed : GtkClutter.Embed {
             case Gdk.EventType.MOTION_NOTIFY:
             case Gdk.EventType.ENTER_NOTIFY:
                 show_cursor ();
-                motion ();
+                controls.activity ();
                 timer.start ();
                 break;
 
@@ -40,6 +44,15 @@ class StageEmbed : GtkClutter.Embed {
         }
     }
 
+    void update_controls_actor () {
+        if (controls_preferred_height == 0)
+            controls.get_preferred_height (null, out controls_preferred_height);
+
+        controls_actor.width = this.get_stage ().width;
+        controls_actor.height = controls_preferred_height;
+        controls_actor.y = this.get_stage ().height - controls_preferred_height;
+    }
+
     construct {
         timer = new Timer ();
         timer.stop ();
@@ -53,5 +66,13 @@ class StageEmbed : GtkClutter.Embed {
 
             return Source.CONTINUE;
         });
+
+        controls = new ControlContainer ();
+        controls_actor = new GtkClutter.Actor.with_contents (controls);
+
+        this.get_stage ().add_child (controls_actor);
+        controls_actor.get_widget ().show_all ();
+
+        this.get_stage ().notify["size"].connect_after (update_controls_actor);
     }
 }

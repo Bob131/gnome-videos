@@ -7,14 +7,9 @@ class MainWindow : Gtk.ApplicationWindow {
     Gtk.Stack stack;
     [GtkChild]
     Gtk.Widget greeter;
-    [GtkChild]
-    Gtk.Overlay overlay;
 
     [GtkChild]
     StageEmbed stage_embed;
-
-    [GtkChild]
-    ControlContainer controls;
 
     void media_closed () {
         this.title = "Videos";
@@ -45,8 +40,8 @@ class MainWindow : Gtk.ApplicationWindow {
 
         media.tags.tag_updated.connect (update_title);
 
-        stack.visible_child = overlay;
-        controls.activity ();
+        stack.visible_child = stage_embed;
+        stage_embed.controls.activity ();
     }
 
     internal override void drag_data_received (
@@ -121,8 +116,6 @@ class MainWindow : Gtk.ApplicationWindow {
             else
                 this.unfullscreen ();
         });
-
-        stage_embed.motion.connect (() => controls.activity ());
 
         var drop_targets = new Gtk.TargetList (null);
         drop_targets.add_uri_targets (0);

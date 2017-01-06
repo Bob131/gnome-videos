@@ -49,17 +49,7 @@
         </child>
 
         <child>
-          <object class="GtkOverlay" id="overlay">
-
-            <child type="overlay">
-              <object class="ControlContainer" id="controls"></object>
-            </child>
-
-            <child>
-              <object class="StageEmbed" id="stage_embed"></object>
-            </child>
-
-          </object>
+          <object class="StageEmbed" id="stage_embed"></object>
         </child>
 
       </object>

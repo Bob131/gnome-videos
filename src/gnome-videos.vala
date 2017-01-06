@@ -31,7 +31,9 @@ class Videos : Gtk.Application {
     }
 
     static int main (string[] args) {
-        ClutterGst.init (ref args);
+        // GtkClutter.init sets up Clutter to use the same backend as GDK
+        GtkClutter.init (ref args);
+        Gst.init (ref args);
 
 #if CPU_x86
         vaapi_workaround ();
