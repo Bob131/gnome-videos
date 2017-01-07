@@ -39,6 +39,8 @@ class Videos : Gtk.Application {
         vaapi_workaround ();
 #endif
 
+        bcmdec_workaround ();
+
         return new Videos ().run (args);
     }
 }

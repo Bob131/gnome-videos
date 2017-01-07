@@ -1,4 +1,4 @@
-AC_INIT([gnome-videos], [0.1.2])
+AC_INIT([gnome-videos], [0.1.3])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -45,6 +45,17 @@ if test "$host_cpu" = "x86_64"; then
     libva-x11
   ])
 fi
+
+AC_CHECK_HEADER(
+  [libcrystalhd/libcrystalhd_if.h],
+  [],
+  [AC_MSG_ERROR([CrystalHD headers required])]
+)
+AC_CHECK_LIB(
+  [crystalhd], [DtsDeviceOpen],
+  [],
+  [AC_MSG_ERROR([libcrystalhd not found])]
+)
 
 AC_SUBST([gnome_videos_U_VALAFLAGS], ["--pkg gio-2.0 \
           --pkg gtk+-3.0 \

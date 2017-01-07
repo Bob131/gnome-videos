@@ -18,7 +18,9 @@ gnome_videos_SOURCES = \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \
 	gtk/controls/fullscreen-button.vala \
-	gtk/controls/seek-bar.vala
+	gtk/controls/seek-bar.vala \
+	bcmdec-workaround/crystalhd.vapi \
+	bcmdec-workaround/bcmdec-workaround.vala
 
 gnome_videos_VALAFLAGS = \
 	--gresources gresources.xml \
@@ -26,7 +28,7 @@ gnome_videos_VALAFLAGS = \
 
 gnome_videos_CFLAGS = $(gnome_videos_U_CFLAGS) -rdynamic
 
-gnome_videos_LDFLAGS = $(gnome_videos_U_LIBS)
+gnome_videos_LDFLAGS = $(gnome_videos_U_LIBS) -lcrystalhd
 
 if CPU_x86
 gnome_videos_SOURCES += \

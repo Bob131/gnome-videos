@@ -12,6 +12,7 @@ BuildRequires:  gtk3-devel >= @GTK_REQUIRED@
 BuildRequires:  clutter-gtk-devel
 BuildRequires:  clutter-gst3-devel
 BuildRequires:  gstreamer1-plugins-base-devel
+BuildRequires:  libcrystalhd-devel
 
 BuildRequires:  python3
 BuildRequires:  librsvg2-tools
