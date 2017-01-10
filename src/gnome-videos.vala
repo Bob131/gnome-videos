@@ -25,6 +25,18 @@ class Videos : Gtk.Application {
         AppController.get_default ().open_file (files[0]);
     }
 
+    internal override void startup () {
+        base.startup ();
+
+        var action = new SimpleAction ("quit", null);
+        action.activate.connect (() => this.quit ());
+        this.add_action (action);
+
+        var builder =
+            new Gtk.Builder.from_resource ("/so/bob131/Videos/gtk/app-menu.ui");
+        this.set_app_menu ((MenuModel) builder.get_object ("appmenu"));
+    }
+
     Videos () {
         Object (application_id: "so.bob131.Videos",
             flags: ApplicationFlags.HANDLES_OPEN);

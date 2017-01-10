@@ -104,6 +104,15 @@ class MainWindow : Gtk.ApplicationWindow {
         Object (application: (Gtk.Application) Application.get_default (),
             title: "Videos");
 
+        var gtk_settings = this.get_settings ();
+        var prefs = new Preferences ();
+        prefs.settings.bind ("use-dark-theme", gtk_settings,
+            "gtk-application-prefer-dark-theme", SettingsBindFlags.GET);
+
+        var action = new SimpleAction ("preferences", null);
+        action.activate.connect (() => build_prefs_dialog (this).run ());
+        this.add_action (action);
+
         stage = stage_embed.get_stage ();
         stage.background_color = {0, 0, 0, 0};
 

@@ -12,8 +12,10 @@ gnome_videos_SOURCES = \
 	controller.vala \
 	media.vala \
 	pipeline.vala \
+	preferences.vala \
 	gresources.c \
 	gtk/window.vala \
+	gtk/prefs.vala \
 	gtk/stage-embed.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \

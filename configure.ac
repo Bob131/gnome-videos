@@ -1,4 +1,4 @@
-AC_INIT([gnome-videos], [0.1.3])
+AC_INIT([gnome-videos], [0.2])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -70,6 +70,8 @@ AC_SUBST([gnome_videos_U_VALAFLAGS], ["--pkg gio-2.0 \
           --enable-experimental-non-null"])
 
 AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
+
+GLIB_GSETTINGS
 
 dnl ###########################################################################
 dnl Files to generate

@@ -1,3 +1,6 @@
+gsettings_SCHEMAS = settings.gschema.xml
+@GSETTINGS_RULES@
+
 icondir = $(datadir)/icons/hicolor
 name = so.bob131.Videos
 
