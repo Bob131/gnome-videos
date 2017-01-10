@@ -62,12 +62,7 @@ class MainWindow : Gtk.ApplicationWindow {
         controller.open_file (File.new_for_uri (uris[0]));
     }
 
-    [GtkCallback]
-    bool greeter_click (Gdk.EventButton event) {
-        // only handle single left-clicks
-        if (event.type != Gdk.EventType.BUTTON_RELEASE || event.button != 1)
-            return Gdk.EVENT_PROPAGATE;
-
+    void open_file_selection_dialog () {
         var chooser = new Gtk.FileChooserDialog ("Open media", this,
             Gtk.FileChooserAction.OPEN,
             "_Cancel", Gtk.ResponseType.CANCEL,
@@ -96,6 +91,15 @@ class MainWindow : Gtk.ApplicationWindow {
         }
 
         chooser.destroy ();
+    }
+
+    [GtkCallback]
+    bool greeter_click (Gdk.EventButton event) {
+        // only handle single left-clicks
+        if (event.type != Gdk.EventType.BUTTON_RELEASE || event.button != 1)
+            return Gdk.EVENT_PROPAGATE;
+
+        open_file_selection_dialog ();
 
         return true;
     }
@@ -111,6 +115,10 @@ class MainWindow : Gtk.ApplicationWindow {
 
         var action = new SimpleAction ("preferences", null);
         action.activate.connect (() => build_prefs_dialog (this).run ());
+        this.add_action (action);
+
+        action = new SimpleAction ("open", null);
+        action.activate.connect (open_file_selection_dialog);
         this.add_action (action);
 
         stage = stage_embed.get_stage ();

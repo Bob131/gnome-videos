@@ -4,6 +4,15 @@
     <section>
 
       <item>
+        <attribute name="label">_Open File</attribute>
+        <attribute name="action">win.open</attribute>
+      </item>
+
+    </section>
+
+    <section>
+
+      <item>
         <attribute name="label">_Preferences</attribute>
         <attribute name="action">win.preferences</attribute>
       </item>
