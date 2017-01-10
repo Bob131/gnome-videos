@@ -22,6 +22,10 @@ void vaapi_workaround () {
     if (cpuid != 0x206a7)
         return;
 
+    var decodebin_factory = Gst.ElementFactory.find ("vaapidecodebin");
+    if (decodebin_factory == null)
+        return;
+
     Initializer[] initializers = {
         open_display_wayland,
         open_display_x11
@@ -47,8 +51,11 @@ void vaapi_workaround () {
     if (driver_name != "i965")
         return;
 
-    message ("Hardware video acceleration is currently broken on %s",
-        "Sandy Bridge hardware. Using dummy libva driver instead");
+    message ("Hardware accelerated video post-processing is currently %s ",
+        "buggy on Sandy Bridge hardware. Enabling hacky work-around");
     message ("See https://bugs.freedesktop.org/show_bug.cgi?id=97086");
-    Environment.set_variable ("LIBVA_DRIVER_NAME", "dummy", true);
+
+    assert (Gst.Plugin.register_static (Gst.VERSION_MAJOR, Gst.VERSION_MINOR,
+        "gnome-videos-vaapidecodebin", "", vaapi_plugin_init, "0", "GPL", "",
+        "", ""));
 }

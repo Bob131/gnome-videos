@@ -35,7 +35,9 @@ gnome_videos_SOURCES += \
 	vaapi-workaround/cpuid.vapi \
 	vaapi-workaround/vaapi.vapi \
 	vaapi-workaround/wayland.vapi \
-	vaapi-workaround/vaapi-workaround.vala
+	vaapi-workaround/brand-string.c \
+	vaapi-workaround/vaapi-workaround.vala \
+	vaapi-workaround/vaapidecodebin.vala
 
 gnome_videos_VALAFLAGS += \
 	-D CPU_x86 \
