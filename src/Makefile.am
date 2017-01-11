@@ -1,6 +1,9 @@
 bin_PROGRAMS = gnome-videos
 
-BUILT_SOURCES = gresources.c
+BUILT_SOURCES = gtk/about.ui gresources.c
+
+gtk/about.ui: gtk/about.ui.in
+	$(AM_V_GEN) sed "s/[@]VERSION[@]/$(VERSION)/" < $< > $@
 
 resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies --sourcedir=$(srcdir) gresources.xml)
 gresources.c: gresources.xml $(resource_files)
@@ -16,6 +19,7 @@ gnome_videos_SOURCES = \
 	gresources.c \
 	gtk/window.vala \
 	gtk/prefs.vala \
+	gtk/about.vala \
 	gtk/stage-embed.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \

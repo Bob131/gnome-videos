@@ -108,10 +108,14 @@ class MainWindow : Gtk.ApplicationWindow {
         Object (application: (Gtk.Application) Application.get_default (),
             title: "Videos");
 
+        // bind preferences
+
         var gtk_settings = this.get_settings ();
         var prefs = new Preferences ();
         prefs.settings.bind ("use-dark-theme", gtk_settings,
             "gtk-application-prefer-dark-theme", SettingsBindFlags.GET);
+
+        // init actions
 
         var action = new SimpleAction ("preferences", null);
         action.activate.connect (() => build_prefs_dialog (this).run ());
@@ -121,8 +125,16 @@ class MainWindow : Gtk.ApplicationWindow {
         action.activate.connect (open_file_selection_dialog);
         this.add_action (action);
 
+        action = new SimpleAction ("about", null);
+        action.activate.connect (() => new AboutDialog (this).run ());
+        this.add_action (action);
+
+        // setup stage
+
         stage = stage_embed.get_stage ();
         stage.background_color = {0, 0, 0, 0};
+
+        // handle controller events
 
         controller.media_opened.connect (handle_media);
         controller.media_closed.connect_after (media_closed);
@@ -134,10 +146,14 @@ class MainWindow : Gtk.ApplicationWindow {
                 this.unfullscreen ();
         });
 
+        // drag'n'drop
+
         var drop_targets = new Gtk.TargetList (null);
         drop_targets.add_uri_targets (0);
         Gtk.drag_dest_set (this, Gtk.DestDefaults.ALL, {}, Gdk.DragAction.COPY);
         Gtk.drag_dest_set_target_list (this, drop_targets);
+
+        // window setup
 
         this.destroy.connect (() => controller.media_closed ());
 

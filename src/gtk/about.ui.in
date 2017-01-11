@@ -1,0 +1,9 @@
+<interface>
+  <template class="AboutDialog" parent="GtkAboutDialog">
+    <property name="program-name">Videos</property>
+    <property name="comments">Video player for the GNOME Desktop</property>
+    <property name="version">@VERSION@</property>
+    <property name="website">https://github.com/Bob131/gnome-videos</property>
+    <property name="license-type">gpl-3-0</property>
+  </template>
+</interface>
