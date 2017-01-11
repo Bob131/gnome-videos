@@ -52,4 +52,5 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_bindir}/gnome-videos
 %{_datadir}/applications/so.bob131.Videos.desktop
 %{_datadir}/icons/hicolor/*/apps/*
+%{_datadir}/glib-2.0/schemas/so.bob131.Videos.gschema.xml
 %license LICENSE
