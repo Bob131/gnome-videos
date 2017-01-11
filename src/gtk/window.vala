@@ -129,6 +129,10 @@ class MainWindow : Gtk.ApplicationWindow {
         action.activate.connect (() => new AboutDialog (this).run ());
         this.add_action (action);
 
+        action = new SimpleAction ("shortcuts", null);
+        action.activate.connect (() => new ShortcutWindow (this));
+        this.add_action (action);
+
         // setup stage
 
         stage = stage_embed.get_stage ();

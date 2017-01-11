@@ -46,30 +46,26 @@ class PlaybackController : Object {
 
     public Nanoseconds position {
         set { now_playing.pipeline.seek (value); }
-        get {
-            Nanoseconds ret;
-            now_playing.pipeline.query_position (Gst.Format.TIME, out ret);
-            return ret;
-        }
+        get { return now_playing.pipeline.get_position (); }
+    }
+
+    [CCode (notify = false)]
+    public bool paused {
+        set { state = value ? PlayerState.PAUSED : PlayerState.PLAYING; }
+        get { return state == PlayerState.PAUSED; }
+    }
+
+    [CCode (notify = false)]
+    public bool playing {
+        set { paused = !value; }
+        get { return state == PlayerState.PLAYING; }
     }
 
     public signal void state_changed (PlayerState new_state);
 
-    public void pause () {
-        state = PlayerState.PAUSED;
-    }
-
-    public void play () {
-        // if we're playing from the end of a file, rewind first
-        if (now_playing.duration > 0 && position == now_playing.duration - 1)
-            position = 0;
-
-        state = PlayerState.PLAYING;
-    }
-
     public PlaybackController (File file) {
         now_playing = new Media (this, file);
         this.notify["state"].connect (() => state_changed (state));
-        this.play ();
+        playing = true;
     }
 }

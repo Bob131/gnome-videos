@@ -1,0 +1,27 @@
+@binding-set ControlBindings {
+    bind "space" { "pause-toggle" () };
+
+    bind "F"           { "fullscreen-toggle" () };
+    bind "<Alt>Return" { "fullscreen-toggle" () };
+
+    bind "Escape" { "unfullscreen" () };
+
+    bind "Left"  { "seek-delta" (-5) };
+    bind "Right" { "seek-delta" ( 5) };
+    bind "<Shift>Left"  { "seek-delta" (-1) };
+    bind "<Shift>Right" { "seek-delta" ( 1) };
+
+    bind "Up"   { "seek-delta" ( 60) };
+    bind "Down" { "seek-delta" (-60) };
+    bind "<Shift>Up"   { "seek-delta" ( 10) };
+    bind "<Shift>Down" { "seek-delta" (-10) };
+
+    bind "period" { "seek-frame" ( 1) };
+    bind "comma"  { "seek-frame" (-1) };
+
+    bind "Q" { "quit" () };
+}
+
+revealer {
+    -gtk-key-bindings: ControlBindings;
+}

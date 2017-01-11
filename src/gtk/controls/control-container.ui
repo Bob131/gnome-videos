@@ -3,6 +3,7 @@
     <property name="reveal-child">true</property>
     <property name="transition-type">slide-up</property>
     <property name="valign">end</property>
+    <property name="can-focus">true</property>
 
     <child>
       <object class="GtkEventBox">

@@ -22,6 +22,11 @@
     <section>
 
       <item>
+        <attribute name="label">_Keyboard Shortcuts</attribute>
+        <attribute name="action">win.shortcuts</attribute>
+      </item>
+
+      <item>
         <attribute name="label">_About</attribute>
         <attribute name="action">win.about</attribute>
       </item>

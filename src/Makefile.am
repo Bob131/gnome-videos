@@ -20,6 +20,7 @@ gnome_videos_SOURCES = \
 	gtk/window.vala \
 	gtk/prefs.vala \
 	gtk/about.vala \
+	gtk/shortcut-window.vala \
 	gtk/stage-embed.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \

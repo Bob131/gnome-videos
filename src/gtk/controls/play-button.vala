@@ -7,10 +7,7 @@ class PlayButton : Gtk.Button {
 
     [GtkCallback]
     void state_toggle () {
-        if (controller.playback.state == PlayerState.PLAYING)
-            controller.playback.pause ();
-        else
-            controller.playback.play ();
+        controller.playback.paused ^= true;
     }
 
     construct {

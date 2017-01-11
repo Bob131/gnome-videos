@@ -1,0 +1,126 @@
+<interface>
+  <template class="ShortcutWindow" parent="GtkShortcutsWindow">
+    <property name="modal">true</property>
+
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">player</property>
+        <property name="title">Player Shortcuts</property>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">General</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Quit</property>
+                <property name="accelerator">Q</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Toggle Full Screen</property>
+                <property name="accelerator">&lt;alt&gt;Return F</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Exit Full Screen</property>
+                <property name="accelerator">Escape</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Pause</property>
+                <property name="accelerator">space</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Seeking</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Rewind One Frame</property>
+                <property name="accelerator">comma</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Fast-Forward One Frame</property>
+                <property name="accelerator">period</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Rewind One Second</property>
+                <property name="accelerator">&lt;shift&gt;Left</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Fast-Forward One Second</property>
+                <property name="accelerator">&lt;shift&gt;Right</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Rewind Five Seconds</property>
+                <property name="accelerator">Left</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Fast-Forward Five Seconds</property>
+                <property name="accelerator">Right</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Rewind Ten Seconds</property>
+                <property name="accelerator">&lt;shift&gt;Down</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Fast-Forward Ten Seconds</property>
+                <property name="accelerator">&lt;shift&gt;Up</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Rewind One Minute</property>
+                <property name="accelerator">Down</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Fast-Forward One Minute</property>
+                <property name="accelerator">Up</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </template>
+</interface>

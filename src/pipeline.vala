@@ -67,8 +67,19 @@ class Pipeline : Gst.Pipeline {
             pad.template.name_template.replace ("_%u", ""));
     }
 
-    void sync_controller_state () {
-        var new_state = (Gst.State) media.playback_controller.state;
+    public Nanoseconds get_position () {
+        Nanoseconds ret;
+        this.query_position (Gst.Format.TIME, out ret);
+        return ret;
+    }
+
+    void sync_controller_state (PlayerState new_controller_state) {
+        // if we're playing from the end of a file, rewind first
+        if (new_controller_state == PlayerState.PLAYING && media.duration > 0
+                && get_position () == media.duration)
+            seek (0);
+
+        var new_state = (Gst.State) new_controller_state;
         if (this.set_state (new_state) == Gst.StateChangeReturn.FAILURE)
             warning ("State transition failed: %s -> %s",
                 this.current_state.to_string (), new_state.to_string ());
@@ -76,10 +87,18 @@ class Pipeline : Gst.Pipeline {
 
     public new void seek (Nanoseconds pos)
         requires (this.current_state >= Gst.State.PAUSED)
-        requires (pos <= media.duration)
     {
+        pos = pos.clamp (0, media.duration);
         if (!this.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, pos))
             warning ("Seek failed!");
+    }
+
+    public void frame_step (int frames)
+        requires (frames != 0)
+    {
+        // TODO: Calculate time based on video frame rate instead of assuming
+        // 24 fps.
+        seek (get_position () + frames * Gst.SECOND / 24);
     }
 
     void handle_bus_message (Gst.Message message) {
@@ -92,7 +111,7 @@ class Pipeline : Gst.Pipeline {
                 break;
 
             case Gst.MessageType.EOS:
-                media.playback_controller.pause ();
+                media.playback_controller.paused = true;
                 break;
         }
 
@@ -179,7 +198,7 @@ class Pipeline : Gst.Pipeline {
 
         decoder.pad_added.connect (handle_decoder_pad);
 
-        media.playback_controller.notify["state"].connect (
+        media.playback_controller.state_changed.connect (
             sync_controller_state);
 
         media.got_streams.connect (detect_video);
