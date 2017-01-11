@@ -6,6 +6,7 @@
       <item>
         <attribute name="label">_Open File</attribute>
         <attribute name="action">win.open</attribute>
+        <attribute name="accel">&lt;ctrl&gt;O</attribute>
       </item>
 
     </section>
@@ -15,6 +16,7 @@
       <item>
         <attribute name="label">_Preferences</attribute>
         <attribute name="action">win.preferences</attribute>
+        <attribute name="accel">&lt;ctrl&gt;P</attribute>
       </item>
 
     </section>
@@ -34,6 +36,7 @@
       <item>
         <attribute name="label">_Quit</attribute>
         <attribute name="action">app.quit</attribute>
+        <attribute name="accel">&lt;ctrl&gt;Q</attribute>
       </item>
 
     </section>

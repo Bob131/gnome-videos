@@ -122,5 +122,41 @@
       </object>
     </child>
 
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="section-name">app</property>
+        <property name="title">Application Shortcuts</property>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">General</property>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Quit</property>
+                <property name="accelerator">&lt;ctrl&gt;Q</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Open File</property>
+                <property name="accelerator">&lt;ctrl&gt;O</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title">Preferences</property>
+                <property name="accelerator">&lt;ctrl&gt;P</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+
   </template>
 </interface>
