@@ -1,4 +1,4 @@
-AC_INIT([gnome-videos], [0.2.1])
+AC_INIT([gnome-videos], [0.3])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

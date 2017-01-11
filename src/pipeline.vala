@@ -1,3 +1,26 @@
+class SubOverlayConverter : Gst.Bin {
+    public Gst.GhostPad sink_pad {private set; get;}
+    public Gst.GhostPad src_pad {private set; get;}
+
+    public SubOverlayConverter (Gst.Element overlay) {
+        Gst.Element converter =
+            null_cast (Gst.ElementFactory.make ("videoconvert", null));
+
+        this.add_many (overlay, converter);
+
+        sink_pad = new Gst.GhostPad ("sink", overlay.sinkpads.nth_data (0));
+        this.add_pad (sink_pad);
+
+        src_pad = new Gst.GhostPad ("src", converter.srcpads.nth_data (0));
+        this.add_pad (src_pad);
+
+        overlay.set_state (this.current_state);
+        converter.set_state (this.current_state);
+
+        assert (overlay.link (converter));
+    }
+}
+
 class Pipeline : Gst.Pipeline {
     public weak Media media {construct; get;}
     public ClutterGst.VideoSink video_sink {construct; get;}
@@ -6,6 +29,7 @@ class Pipeline : Gst.Pipeline {
     Gst.Element decoder;
 
     Gst.Element audio_sink;
+    Gst.Element subtitle_overlay;
 
     public signal void event (Event event);
 
@@ -34,37 +58,39 @@ class Pipeline : Gst.Pipeline {
             return Gst.PadProbeReturn.OK;
         });
 
-        Gst.Element? sink = null;
-        Gst.Element? convert = null;
+        Gst.Element sink;
+        Gst.Element convert;
 
         switch (pad.template.name_template) {
             case "video_%u":
                 sink = video_sink;
-                convert = Gst.ElementFactory.make ("videoconvert", null);
+                convert = new SubOverlayConverter (subtitle_overlay);
                 break;
             case "audio_%u":
                 sink = audio_sink;
-                convert = Gst.ElementFactory.make ("audioconvert", null);
+                convert =
+                    null_cast (Gst.ElementFactory.make ("audioconvert", null));
                 break;
-        }
-
-        if (sink != null) {
-            return_if_fail (convert != null);
-
-            var sink_ = (!) sink,
-                convert_ = (!) convert;
-
-            this.add_many (sink_, convert_);
-
-            sink_.set_state (this.current_state);
-            convert_.set_state (this.current_state);
-
-            if (decoder.link (convert_) && convert_.link (sink_))
+            case "text_%u":
+                sink = subtitle_overlay;
+                convert =
+                    null_cast (Gst.ElementFactory.make ("identity", null));
+                break;
+            default:
+                warning ("Failed to link sink for type '%s'",
+                    pad.template.name_template.replace ("_%u", ""));
                 return;
         }
 
-        warning ("Failed to link sink for type '%s'",
-            pad.template.name_template.replace ("_%u", ""));
+        if (sink.get_parent () == null)
+            this.add (sink);
+
+        this.add (convert);
+
+        sink.set_state (this.current_state);
+        convert.set_state (this.current_state);
+
+        warn_if_fail (decoder.link (convert) && convert.link (sink));
     }
 
     public Nanoseconds get_position () {
@@ -188,6 +214,8 @@ class Pipeline : Gst.Pipeline {
 
         audio_sink =
             null_cast (Gst.ElementFactory.make ("autoaudiosink", null));
+        subtitle_overlay =
+            null_cast (Gst.ElementFactory.make ("subtitleoverlay", null));
 
         this.add_many (source, decoder);
 
