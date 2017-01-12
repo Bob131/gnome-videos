@@ -38,7 +38,16 @@ class StageEmbed : GtkClutter.Embed {
                 event.get_button (out button);
 
                 if (button == 1)
-                    controller.fullscreen = !controller.fullscreen;
+                    controller.fullscreen ^= true;
+
+                break;
+
+            case Gdk.EventType.BUTTON_PRESS:
+                uint button;
+                event.get_button (out button);
+
+                if (button == 3)
+                    controller.playback.playing ^= true;
 
                 break;
         }
