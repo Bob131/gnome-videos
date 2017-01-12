@@ -11,6 +11,8 @@ class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     StageEmbed stage_embed;
 
+    uint inhibit_cookie;
+
     void media_closed () {
         this.title = "Videos";
         stage.set_content (null);
@@ -31,6 +33,19 @@ class MainWindow : Gtk.ApplicationWindow {
         dialog.destroy ();
     }
 
+    void inhibit_toggle (PlayerState state) {
+        if (state == PlayerState.PLAYING) {
+            return_if_fail (inhibit_cookie == 0);
+            inhibit_cookie = this.application.inhibit (this,
+                Gtk.ApplicationInhibitFlags.IDLE, "Media playing");
+            warn_if_fail (inhibit_cookie != 0);
+        } else {
+            return_if_fail (inhibit_cookie != 0);
+            this.application.uninhibit (inhibit_cookie);
+            inhibit_cookie = 0;
+        }
+    }
+
     void handle_media (Media media) {
         media.pipeline.error.connect (display_error);
 
@@ -42,6 +57,9 @@ class MainWindow : Gtk.ApplicationWindow {
 
         stack.visible_child = stage_embed;
         stage_embed.controls.activity ();
+
+        controller.playback.state_changed.connect (inhibit_toggle);
+        inhibit_toggle (PlayerState.PLAYING);
     }
 
     internal override void drag_data_received (
