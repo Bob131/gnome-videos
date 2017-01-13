@@ -1,23 +1,125 @@
 class SubOverlayConverter : Gst.Bin {
-    public Gst.GhostPad sink_pad {private set; get;}
+    public Gst.GhostPad video_sink_pad {private set; get;}
+    public Gst.GhostPad sub_sink_pad {private set; get;}
     public Gst.GhostPad src_pad {private set; get;}
 
-    public SubOverlayConverter (Gst.Element overlay) {
-        Gst.Element converter =
-            null_cast (Gst.ElementFactory.make ("videoconvert", null));
+    static Gst.PadTemplate sub_sink_template;
 
-        this.add_many (overlay, converter);
+    Gst.Element render;
+    Gst.Element overlay;
+    Gst.Element convert;
 
-        sink_pad = new Gst.GhostPad ("sink", overlay.sinkpads.nth_data (0));
-        this.add_pad (sink_pad);
+    void handle_sub_caps (Gst.Caps caps) {
+        Gst.Element target_sink;
+        Gst.Pad target_video_sink_pad, target_sub_sink_pad;
 
-        src_pad = new Gst.GhostPad ("src", converter.srcpads.nth_data (0));
+        var media_type = caps.get_structure (0).get_name ();
+        switch (media_type) {
+            case "text/x-raw":
+            case "subpicture/x-dvd":
+            case "subpicture/x-dvb":
+            case "subpicture/x-xsub":
+            case "subpicture/x-pgs":
+                target_sink = overlay;
+                target_video_sink_pad =
+                    (!) overlay.get_static_pad ("video_sink");
+                target_sub_sink_pad =
+                    (!) overlay.get_static_pad ("subtitle_sink");
+                break;
+            case "application/x-ass":
+            case "application/x-ssa":
+                target_sink = render;
+                target_video_sink_pad =
+                    (!) render.get_static_pad ("video_sink");
+                target_sub_sink_pad = (!) render.get_static_pad ("text_sink");
+                break;
+            default:
+                critical ("Unhandled subtitle caps: %s", media_type);
+                return;
+        }
+
+        ulong p = 0;
+        p = video_sink_pad.add_probe (Gst.PadProbeType.BLOCK_DOWNSTREAM, () => {
+            video_sink_pad.remove_probe (p);
+
+            var video_sink_sink_pad = (!) video_sink_pad.get_target ();
+            var current_video_sink = (Gst.Element) video_sink_sink_pad.parent;
+            var video_sink_src_pad = current_video_sink.srcpads.nth_data (0);
+
+            video_sink_src_pad.add_probe (
+                Gst.PadProbeType.BLOCK | Gst.PadProbeType.EVENT_DOWNSTREAM,
+                (pad, info) => {
+                    if (info.get_event ().type != Gst.EventType.EOS)
+                        return Gst.PadProbeReturn.PASS;
+
+                    video_sink_src_pad.remove_probe (info.id);
+
+                    if (target_sink != convert)
+                        this.add (target_sink);
+
+                    video_sink_pad.set_target (target_video_sink_pad);
+                    sub_sink_pad.set_target (target_sub_sink_pad);
+
+                    if (current_video_sink != convert)
+                        this.remove (current_video_sink);
+
+                    target_sink.link (convert);
+
+                    target_sink.set_state (this.current_state);
+
+                    return Gst.PadProbeReturn.DROP;
+                }
+            );
+
+            video_sink_sink_pad.send_event (new Gst.Event.eos ());
+
+            return Gst.PadProbeReturn.OK;
+        });
+    }
+
+    public SubOverlayConverter () {
+        render = null_cast (Gst.ElementFactory.make ("assrender", null));
+        overlay = null_cast (Gst.ElementFactory.make ("subtitleoverlay", null));
+        convert = null_cast (Gst.ElementFactory.make ("videoconvert", null));
+
+        this.add (convert);
+
+        video_sink_pad = new Gst.GhostPad ("video_sink",
+            convert.sinkpads.nth_data (0));
+        this.add_pad (video_sink_pad);
+
+        sub_sink_pad = new Gst.GhostPad.no_target_from_template (null,
+            sub_sink_template);
+        this.add_pad (sub_sink_pad);
+
+        Gst.pad_set_event_function (sub_sink_pad, (pad, parent, event) => {
+            switch (event.type) {
+                case Gst.EventType.CAPS:
+                    Gst.Caps caps;
+                    event.parse_caps (out caps);
+                    ((SubOverlayConverter) parent).handle_sub_caps (caps);
+                    break;
+            }
+
+            return pad.event_default (parent, event);
+        });
+
+        src_pad = new Gst.GhostPad ("src", convert.srcpads.nth_data (0));
         this.add_pad (src_pad);
+    }
 
-        overlay.set_state (this.current_state);
-        converter.set_state (this.current_state);
-
-        assert (overlay.link (converter));
+    class construct {
+        var sub_caps = Gst.Caps.from_string (
+            "application/x-ass; "
+            + "application/x-ssa; "
+            + "text/x-raw; "
+            + "subpicture/x-dvd; "
+            + "subpicture/x-dvb; "
+            + "subpicture/x-xsub; "
+            + "subpicture/x-pgs;"
+        );
+        sub_sink_template = new Gst.PadTemplate ("sub_sink",
+            Gst.PadDirection.SINK, Gst.PadPresence.ALWAYS, sub_caps);
     }
 }
 
@@ -25,11 +127,13 @@ class Pipeline : Gst.Pipeline {
     public weak Media media {construct; get;}
     public ClutterGst.VideoSink video_sink {construct; get;}
 
-    Gst.Element source;
-    Gst.Element decoder;
+    dynamic Gst.Element source;
+    dynamic Gst.Element decoder;
 
     Gst.Element audio_sink;
-    Gst.Element subtitle_overlay;
+    SubOverlayConverter subtitle_overlay;
+
+    const string extra_subtitle_caps = "application/x-ass; application/x-ssa";
 
     public signal void event (Event event);
 
@@ -59,12 +163,12 @@ class Pipeline : Gst.Pipeline {
         });
 
         Gst.Element sink;
-        Gst.Element convert;
+        Gst.Element? convert = null;
 
         switch (pad.template.name_template) {
             case "video_%u":
                 sink = video_sink;
-                convert = new SubOverlayConverter (subtitle_overlay);
+                convert = subtitle_overlay;
                 break;
             case "audio_%u":
                 sink = audio_sink;
@@ -73,10 +177,15 @@ class Pipeline : Gst.Pipeline {
                 break;
             case "text_%u":
                 sink = subtitle_overlay;
-                convert =
-                    null_cast (Gst.ElementFactory.make ("identity", null));
                 break;
             default:
+                var subtitle_caps = Gst.Caps.from_string (extra_subtitle_caps);
+                var pad_caps = pad.query_caps (null);
+                if (subtitle_caps.can_intersect (pad_caps)) {
+                    sink = subtitle_overlay;
+                    break;
+                }
+
                 warning ("Failed to link sink for type '%s'",
                     pad.template.name_template.replace ("_%u", ""));
                 return;
@@ -85,12 +194,17 @@ class Pipeline : Gst.Pipeline {
         if (sink.get_parent () == null)
             this.add (sink);
 
-        this.add (convert);
-
         sink.set_state (this.current_state);
-        convert.set_state (this.current_state);
 
-        warn_if_fail (decoder.link (convert) && convert.link (sink));
+        if (convert == null)
+            warn_if_fail (decoder.link (sink));
+        else {
+            this.add ((!) convert);
+            ((!) convert).set_state (this.current_state);
+
+            warn_if_fail (decoder.link ((!) convert)
+                && ((!) convert).link (sink));
+        }
     }
 
     public Nanoseconds get_position () {
@@ -212,10 +326,13 @@ class Pipeline : Gst.Pipeline {
         source = null_cast (Gst.ElementFactory.make ("urisourcebin", "source"));
         decoder = null_cast (Gst.ElementFactory.make ("decodebin3", "decoder"));
 
+        unowned Gst.Caps decoder_caps = decoder.caps;
+        var extra_decoder_caps = Gst.Caps.from_string (extra_subtitle_caps);
+        decoder.caps = decoder_caps.merge (extra_decoder_caps);
+
         audio_sink =
             null_cast (Gst.ElementFactory.make ("autoaudiosink", null));
-        subtitle_overlay =
-            null_cast (Gst.ElementFactory.make ("subtitleoverlay", null));
+        subtitle_overlay = new SubOverlayConverter ();
 
         this.add_many (source, decoder);
 
@@ -236,6 +353,6 @@ class Pipeline : Gst.Pipeline {
         bus.add_signal_watch ();
         bus.message.connect (handle_bus_message);
 
-        source["uri"] = media.file.get_uri ();
+        source.uri = media.file.get_uri ();
     }
 }

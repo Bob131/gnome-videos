@@ -28,6 +28,8 @@ gnome_videos_SOURCES = \
 	gtk/controls/seek-bar.vala \
 	bcmdec-workaround/crystalhd.vapi \
 	bcmdec-workaround/bcmdec-workaround.vala
+	bcmdec-workaround/bcmdec-workaround.vala \
+	gst-redefs.vapi
 
 gnome_videos_VALAFLAGS = \
 	--gresources gresources.xml \

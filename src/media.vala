@@ -66,8 +66,6 @@ class Media : Object {
                 if (!(event is BusEvent))
                     return;
 
-                return_if_fail (duration == 0);
-
                 Nanoseconds tmp;
                 return_if_fail (
                     pipeline.query_duration (Gst.Format.TIME, out tmp));
