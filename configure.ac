@@ -33,6 +33,7 @@ PKG_CHECK_MODULES(gnome_videos_U, [
   gobject-2.0 >= $GLIB_REQUIRED
   gio-2.0 >= $GLIB_REQUIRED
   gtk+-3.0 >= $GTK_REQUIRED
+  gee-0.8
   clutter-gtk-1.0
   clutter-gst-3.0
   gstreamer-tag-1.0
@@ -58,6 +59,7 @@ AC_CHECK_LIB(
 )
 
 AC_SUBST([gnome_videos_U_VALAFLAGS], ["--pkg gio-2.0 \
+          --pkg gee-0.8 \
           --pkg gtk+-3.0 \
           --pkg clutter-gtk-1.0 \
           --pkg clutter-gst-3.0 \

@@ -9,6 +9,59 @@ class SubOverlayConverter : Gst.Bin {
     Gst.Element overlay;
     Gst.Element convert;
 
+    void switch_sink (
+        Gst.Element target_sink,
+        Gst.Pad target_video_sink_pad,
+        Gst.Pad? target_sub_sink_pad
+    ) {
+        ulong p = 0;
+        p = video_sink_pad.add_probe (Gst.PadProbeType.BLOCK_DOWNSTREAM, () => {
+            video_sink_pad.remove_probe (p);
+
+            var video_sink_sink_pad = (!) video_sink_pad.get_target ();
+            var current_video_sink = (Gst.Element) video_sink_sink_pad.parent;
+            var video_sink_src_pad = current_video_sink.srcpads.nth_data (0);
+
+            if (target_sink == current_video_sink)
+                return Gst.PadProbeReturn.OK;
+
+            video_sink_src_pad.add_probe (
+                Gst.PadProbeType.BLOCK | Gst.PadProbeType.EVENT_DOWNSTREAM,
+                (pad, info) => {
+                    if (info.get_event ().type != Gst.EventType.EOS)
+                        return Gst.PadProbeReturn.PASS;
+
+                    video_sink_src_pad.remove_probe (info.id);
+
+                    if (target_sink != convert)
+                        this.add (target_sink);
+
+                    if (current_video_sink != convert)
+                        current_video_sink.unlink (convert);
+
+                    video_sink_pad.set_target (target_video_sink_pad);
+                    sub_sink_pad.set_target (target_sub_sink_pad);
+
+                    if (current_video_sink != convert) {
+                        this.remove (current_video_sink);
+                        current_video_sink.set_state (Gst.State.NULL);
+                    }
+
+                    if (target_sink != convert)
+                        target_sink.link (convert);
+
+                    target_sink.set_state (this.current_state);
+
+                    return Gst.PadProbeReturn.DROP;
+                }
+            );
+
+            video_sink_sink_pad.send_event (new Gst.Event.eos ());
+
+            return Gst.PadProbeReturn.OK;
+        });
+    }
+
     void handle_sub_caps (Gst.Caps caps) {
         Gst.Element target_sink;
         Gst.Pad target_video_sink_pad, target_sub_sink_pad;
@@ -38,43 +91,11 @@ class SubOverlayConverter : Gst.Bin {
                 return;
         }
 
-        ulong p = 0;
-        p = video_sink_pad.add_probe (Gst.PadProbeType.BLOCK_DOWNSTREAM, () => {
-            video_sink_pad.remove_probe (p);
+        switch_sink (target_sink, target_video_sink_pad, target_sub_sink_pad);
+    }
 
-            var video_sink_sink_pad = (!) video_sink_pad.get_target ();
-            var current_video_sink = (Gst.Element) video_sink_sink_pad.parent;
-            var video_sink_src_pad = current_video_sink.srcpads.nth_data (0);
-
-            video_sink_src_pad.add_probe (
-                Gst.PadProbeType.BLOCK | Gst.PadProbeType.EVENT_DOWNSTREAM,
-                (pad, info) => {
-                    if (info.get_event ().type != Gst.EventType.EOS)
-                        return Gst.PadProbeReturn.PASS;
-
-                    video_sink_src_pad.remove_probe (info.id);
-
-                    if (target_sink != convert)
-                        this.add (target_sink);
-
-                    video_sink_pad.set_target (target_video_sink_pad);
-                    sub_sink_pad.set_target (target_sub_sink_pad);
-
-                    if (current_video_sink != convert)
-                        this.remove (current_video_sink);
-
-                    target_sink.link (convert);
-
-                    target_sink.set_state (this.current_state);
-
-                    return Gst.PadProbeReturn.DROP;
-                }
-            );
-
-            video_sink_sink_pad.send_event (new Gst.Event.eos ());
-
-            return Gst.PadProbeReturn.OK;
-        });
+    void unlink_subtitle_element () {
+        switch_sink (convert, (!) convert.get_static_pad ("sink"), null);
     }
 
     public SubOverlayConverter () {
@@ -91,6 +112,8 @@ class SubOverlayConverter : Gst.Bin {
         sub_sink_pad = new Gst.GhostPad.no_target_from_template (null,
             sub_sink_template);
         this.add_pad (sub_sink_pad);
+
+        sub_sink_pad.unlinked.connect (unlink_subtitle_element);
 
         Gst.pad_set_event_function (sub_sink_pad, (pad, parent, event) => {
             switch (event.type) {
@@ -205,6 +228,11 @@ class Pipeline : Gst.Pipeline {
             warn_if_fail (decoder.link ((!) convert)
                 && ((!) convert).link (sink));
         }
+    }
+
+    public void select_streams (List<string> stream_list) {
+        var event = new Gst.Event.select_streams ((List<char>) stream_list);
+        decoder.send_event (event);
     }
 
     public Nanoseconds get_position () {

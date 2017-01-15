@@ -11,6 +11,14 @@ class MainWindow : Gtk.ApplicationWindow {
     [GtkChild]
     StageEmbed stage_embed;
 
+    [GtkChild]
+    Gtk.Revealer video_menu_revealer;
+
+    [GtkChild]
+    RadioSubmenu audio_track_selection_menu;
+    [GtkChild]
+    RadioSubmenu subtitle_selection_menu;
+
     uint inhibit_cookie;
 
     void media_closed () {
@@ -46,6 +54,108 @@ class MainWindow : Gtk.ApplicationWindow {
         }
     }
 
+    void handle_streams (Gst.StreamCollection streams) {
+        Gtk.ModelButton[] audio_buttons = {};
+        Gtk.ModelButton[] subtitle_buttons = {};
+
+        for (var i = 0; i < streams.get_size (); i++) {
+            var stream = streams.get_stream (i);
+
+            var model_button = new Gtk.ModelButton ();
+            model_button.visible = true;
+            model_button.role = Gtk.ButtonRole.RADIO;
+            model_button.name = null_cast (stream.get_stream_id ());
+
+            var language = "Unknown";
+            string[] stream_desc = {};
+
+            if (stream.get_caps () != null) {
+                var caps = (!) stream.get_caps ();
+                unowned Gst.Structure structure = (!) caps.get_structure (0);
+
+                int channels;
+                if (structure.get_int ("channels", out channels))
+                    stream_desc += @"$(channels)ch.";
+            }
+
+            if (stream.get_tags () != null) {
+                var tags = (!) stream.get_tags ();
+
+                string language_code;
+                if (tags.get_string (Gst.Tags.LANGUAGE_CODE, out language_code))
+                {
+                    string? language_name =
+                        Gst.Tag.get_language_name (language_code);
+                    language = language_name != null ? (!) language_name
+                        : language_code;
+                }
+
+                string codec;
+                if (tags.get_string (Gst.Tags.CODEC, out codec)
+                        || tags.get_string (Gst.Tags.AUDIO_CODEC, out codec)
+                        || tags.get_string (Gst.Tags.SUBTITLE_CODEC, out codec))
+                    stream_desc += codec;
+            }
+
+            model_button.text = stream_desc.length == 0 ? language :
+                @"$language ($(string.joinv (" ", (string?[]?) stream_desc)))";
+
+            if (Gst.StreamType.AUDIO in stream.get_stream_type ())
+                audio_buttons += model_button;
+            else if (Gst.StreamType.TEXT in stream.get_stream_type ())
+                subtitle_buttons += model_button;
+        }
+
+        audio_track_selection_menu.update (audio_buttons);
+        subtitle_selection_menu.update (subtitle_buttons);
+    }
+
+    Gst.StreamCollection selected_cache;
+
+    void handle_selected_streams (Gst.StreamCollection streams) {
+        selected_cache = streams;
+
+        var subtitle_selected = false;
+
+        for (var i = 0; i < streams.get_size (); i++) {
+            var stream = streams.get_stream (i);
+            string stream_name = null_cast (stream.get_stream_id ());
+
+            if (Gst.StreamType.AUDIO in stream.get_stream_type ())
+                audio_track_selection_menu.select_child_by_name (stream_name);
+            else if (Gst.StreamType.TEXT in stream.get_stream_type ()) {
+                subtitle_selected = true;
+                subtitle_selection_menu.select_child_by_name (stream_name);
+            }
+        }
+
+        if (!subtitle_selected)
+            subtitle_selection_menu.select_child_by_name ("none");
+    }
+
+    [GtkCallback]
+    void stream_selected (RadioSubmenu menu, string selected_name) {
+        var stream_list = new List<string> ();
+
+        for (var i = 0; i < selected_cache.get_size (); i++) {
+            var stream = selected_cache.get_stream (i);
+            string stream_name = null_cast (stream.get_stream_id ());
+
+            if (stream_name == menu.selected_child.name)
+                if (menu == subtitle_selection_menu && selected_name == "none")
+                    continue;
+                else
+                    stream_list.append (selected_name);
+            else
+                stream_list.append (stream_name);
+        }
+
+        if (menu.selected_child.name == "none")
+            stream_list.append (selected_name);
+
+        controller.playback.now_playing.pipeline.select_streams (stream_list);
+    }
+
     void handle_media (Media media) {
         media.pipeline.error.connect (display_error);
 
@@ -57,6 +167,9 @@ class MainWindow : Gtk.ApplicationWindow {
 
         stack.visible_child = stage_embed;
         stage_embed.controls.activity ();
+
+        media.got_streams.connect (handle_streams);
+        media.selected_streams_updated.connect (handle_selected_streams);
 
         controller.playback.state_changed.connect (inhibit_toggle);
         inhibit_toggle (PlayerState.PLAYING);
@@ -151,6 +264,10 @@ class MainWindow : Gtk.ApplicationWindow {
         action.activate.connect (() => new ShortcutWindow (this));
         this.add_action (action);
 
+        action = new SimpleAction ("close-media", null);
+        action.activate.connect (() => controller.media_closed ());
+        this.add_action (action);
+
         // setup stage
 
         stage = stage_embed.get_stage ();
@@ -180,6 +297,10 @@ class MainWindow : Gtk.ApplicationWindow {
         this.destroy.connect (() => controller.media_closed ());
 
         Gtk.Window.set_default_icon_name ("so.bob131.Videos");
+
+        stack.notify["visible-child"].connect (
+            () => video_menu_revealer.reveal_child
+                = stack.visible_child == stage_embed);
 
         this.show_all ();
     }

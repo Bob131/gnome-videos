@@ -1,4 +1,90 @@
 <interface>
+  <object class="GtkPopoverMenu" id="video-menu">
+
+    <child>
+      <object class="GtkBox">
+        <property name="visible">true</property>
+        <property name="margin">10</property>
+        <property name="orientation">vertical</property>
+
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">true</property>
+            <property name="text">Audio tracks</property>
+            <property name="menu-name">audio-tracks</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">true</property>
+            <property name="text">Subtitles</property>
+            <property name="menu-name">subtitles</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="visible">true</property>
+            <property name="orientation">vertical</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">true</property>
+            <property name="text">Close file</property>
+            <property name="action-name">win.close-media</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">true</property>
+            <property name="text">Quit</property>
+            <property name="action-name">app.quit</property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+    <child>
+      <object class="RadioSubmenu" id="audio_track_selection_menu">
+        <property name="title">Audio tracks</property>
+        <signal name="child-activated" handler="stream_selected"/>
+      </object>
+      <packing>
+        <property name="submenu">audio-tracks</property>
+      </packing>
+    </child>
+
+    <child>
+      <object class="RadioSubmenu" id="subtitle_selection_menu">
+        <property name="title">Subtitles</property>
+        <signal name="child-activated" handler="stream_selected"/>
+
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">true</property>
+            <property name="role">radio</property>
+            <property name="text">None</property>
+            <property name="name">none</property>
+            <property name="active">true</property>
+          </object>
+          <packing>
+            <property name="permanent">true</property>
+          </packing>
+        </child>
+
+      </object>
+      <packing>
+        <property name="submenu">subtitles</property>
+      </packing>
+    </child>
+
+  </object>
+
   <template class="MainWindow" parent="GtkApplicationWindow">
     <property name="default-width">1280</property>
     <property name="default-height">720</property>
@@ -6,6 +92,31 @@
     <child type="titlebar">
       <object class="GtkHeaderBar">
         <property name="show-close-button">true</property>
+
+        <child>
+          <object class="GtkRevealer" id="video_menu_revealer">
+            <property name="reveal-child">false</property>
+            <property name="transition-type">slide-right</property>
+
+            <child>
+              <object class="GtkMenuButton">
+                <property name="popover">video-menu</property>
+
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">open-menu-symbolic</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
+
       </object>
     </child>
 

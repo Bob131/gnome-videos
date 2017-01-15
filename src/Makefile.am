@@ -22,12 +22,12 @@ gnome_videos_SOURCES = \
 	gtk/about.vala \
 	gtk/shortcut-window.vala \
 	gtk/stage-embed.vala \
+	gtk/submenu.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \
 	gtk/controls/fullscreen-button.vala \
 	gtk/controls/seek-bar.vala \
 	bcmdec-workaround/crystalhd.vapi \
-	bcmdec-workaround/bcmdec-workaround.vala
 	bcmdec-workaround/bcmdec-workaround.vala \
 	gst-redefs.vapi
 

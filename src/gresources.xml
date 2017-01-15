@@ -6,6 +6,7 @@
     <file compressed="true">gtk/prefs-content.ui</file>
     <file compressed="true">gtk/about.ui</file>
     <file compressed="true">gtk/shortcut-window.ui</file>
+    <file compressed="true">gtk/submenu.ui</file>
     <file compressed="true">gtk/controls/control-container.ui</file>
     <file compressed="true">gtk/controls/play-button.ui</file>
     <file compressed="true">gtk/controls/fullscreen-button.ui</file>

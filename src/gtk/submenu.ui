@@ -1,0 +1,21 @@
+<interface>
+  <template class="Submenu" parent="GtkBox">
+    <property name="visible">true</property>
+    <property name="margin">10</property>
+    <property name="orientation">vertical</property>
+
+    <child>
+      <object class="GtkModelButton">
+        <property name="visible">true</property>
+        <property name="text" bind-property="title" bind-source="Submenu"></property>
+        <property name="menu-name">main</property>
+        <property name="centered">true</property>
+        <property name="inverted">true</property>
+      </object>
+      <packing>
+        <property name="permanent">true</property>
+      </packing>
+    </child>
+
+  </template>
+</interface>
