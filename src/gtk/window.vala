@@ -115,22 +115,15 @@ class MainWindow : Gtk.ApplicationWindow {
     void handle_selected_streams (Gst.StreamCollection streams) {
         selected_cache = streams;
 
-        var subtitle_selected = false;
-
         for (var i = 0; i < streams.get_size (); i++) {
             var stream = streams.get_stream (i);
             string stream_name = null_cast (stream.get_stream_id ());
 
             if (Gst.StreamType.AUDIO in stream.get_stream_type ())
                 audio_track_selection_menu.select_child_by_name (stream_name);
-            else if (Gst.StreamType.TEXT in stream.get_stream_type ()) {
-                subtitle_selected = true;
+            else if (Gst.StreamType.TEXT in stream.get_stream_type ())
                 subtitle_selection_menu.select_child_by_name (stream_name);
-            }
         }
-
-        if (!subtitle_selected)
-            subtitle_selection_menu.select_child_by_name ("none");
     }
 
     [GtkCallback]
@@ -141,17 +134,20 @@ class MainWindow : Gtk.ApplicationWindow {
             var stream = selected_cache.get_stream (i);
             string stream_name = null_cast (stream.get_stream_id ());
 
-            if (stream_name == menu.selected_child.name)
+            if (stream_name == menu.selected_child.name) {
                 if (menu == subtitle_selection_menu && selected_name == "none")
-                    continue;
-                else
+                    controller.playback.now_playing.pipeline.subtitle_overlay
+                        .enable_subtitles = false;
+                else {
+                    controller.playback.now_playing.pipeline.subtitle_overlay
+                        .enable_subtitles = true;
                     stream_list.append (selected_name);
-            else
-                stream_list.append (stream_name);
-        }
+                    continue;
+                }
+            }
 
-        if (menu.selected_child.name == "none")
-            stream_list.append (selected_name);
+            stream_list.append (stream_name);
+        }
 
         controller.playback.now_playing.pipeline.select_streams (stream_list);
     }

@@ -5,9 +5,18 @@ class SubOverlayConverter : Gst.Bin {
 
     static Gst.PadTemplate sub_sink_template;
 
-    Gst.Element render;
-    Gst.Element overlay;
+    dynamic Gst.Element render;
+    dynamic Gst.Element overlay;
     Gst.Element convert;
+
+    public bool enable_subtitles {
+        set {
+            if (((!) video_sink_pad.get_target ()).parent == render)
+                render.enable = value;
+            else if (((!) video_sink_pad.get_target ()).parent == overlay)
+                overlay.silent = !value;
+        }
+    }
 
     void switch_sink (
         Gst.Element target_sink,
@@ -154,7 +163,7 @@ class Pipeline : Gst.Pipeline {
     dynamic Gst.Element decoder;
 
     Gst.Element audio_sink;
-    SubOverlayConverter subtitle_overlay;
+    public SubOverlayConverter subtitle_overlay;
 
     const string extra_subtitle_caps = "application/x-ass; application/x-ssa";
 
