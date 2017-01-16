@@ -1,11 +1,11 @@
 class Pipeline : Gst.Pipeline {
     public weak Media media {construct; get;}
-    public ClutterGst.VideoSink video_sink {construct; get;}
 
     dynamic Gst.Element source;
     dynamic Gst.Element decoder;
 
     Gst.Element audio_sink;
+    ClutterGst.VideoSink video_sink;
     public SubOverlayConverter subtitle_overlay;
 
     const string extra_subtitle_caps = "application/x-ass; application/x-ssa";
@@ -201,7 +201,7 @@ class Pipeline : Gst.Pipeline {
     }
 
     public Pipeline (Media media) {
-        Object (media: media, video_sink: new ClutterGst.VideoSink ());
+        Object (media: media);
 
         source = null_cast (Gst.ElementFactory.make ("urisourcebin", "source"));
         decoder = null_cast (Gst.ElementFactory.make ("decodebin3", "decoder"));
@@ -210,9 +210,12 @@ class Pipeline : Gst.Pipeline {
         var extra_decoder_caps = Gst.Caps.from_string (extra_subtitle_caps);
         decoder.caps = decoder_caps.merge (extra_decoder_caps);
 
+        video_sink = new ClutterGst.VideoSink ();
         audio_sink =
             null_cast (Gst.ElementFactory.make ("autoaudiosink", null));
         subtitle_overlay = new SubOverlayConverter ();
+
+        Bus.@get ().object_constructed["video-sink"] (video_sink);
 
         this.add_many (source, decoder);
 

@@ -4,6 +4,7 @@ class StageEmbed : GtkClutter.Embed {
     Timer timer;
     AppController controller = AppController.get_default ();
 
+    Clutter.Actor stage;
     GtkClutter.Actor controls_actor;
 
     int controls_preferred_height = 0;
@@ -57,9 +58,17 @@ class StageEmbed : GtkClutter.Embed {
         if (controls_preferred_height == 0)
             controls.get_preferred_height (null, out controls_preferred_height);
 
-        controls_actor.width = this.get_stage ().width;
+        controls_actor.width = stage.width;
         controls_actor.height = controls_preferred_height;
-        controls_actor.y = this.get_stage ().height - controls_preferred_height;
+        controls_actor.y = stage.height - controls_preferred_height;
+    }
+
+    void set_sink (Object sink)
+        requires (sink is ClutterGst.VideoSink)
+    {
+        var content = new ClutterGst.Aspectratio ();
+        stage.content = content;
+        content.sink = (ClutterGst.VideoSink) sink;
     }
 
     construct {
@@ -76,12 +85,17 @@ class StageEmbed : GtkClutter.Embed {
             return Source.CONTINUE;
         });
 
+        stage = this.get_stage ();
+        stage.background_color = {0, 0, 0, 0};
+
         controls = new ControlContainer ();
         controls_actor = new GtkClutter.Actor.with_contents (controls);
 
-        this.get_stage ().add_child (controls_actor);
+        stage.add_child (controls_actor);
         controls_actor.get_widget ().show_all ();
 
-        this.get_stage ().notify["size"].connect_after (update_controls_actor);
+        stage.notify["size"].connect_after (update_controls_actor);
+
+        Bus.@get ().object_constructed["video-sink"].connect (set_sink);
     }
 }

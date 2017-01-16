@@ -11,6 +11,7 @@ gresources.c: gresources.xml $(resource_files)
 
 gnome_videos_SOURCES = \
 	gnome-videos.vala \
+	bus.vala \
 	controller.vala \
 	media.vala \
 	preferences.vala \

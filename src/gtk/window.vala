@@ -1,6 +1,5 @@
 [GtkTemplate (ui = "/so/bob131/Videos/gtk/window.ui")]
 class MainWindow : Gtk.ApplicationWindow {
-    Clutter.Actor stage;
     AppController controller = AppController.get_default ();
 
     [GtkChild]
@@ -23,7 +22,6 @@ class MainWindow : Gtk.ApplicationWindow {
 
     void media_closed () {
         this.title = "Videos";
-        stage.set_content (null);
         stack.visible_child = greeter;
     }
 
@@ -155,10 +153,6 @@ class MainWindow : Gtk.ApplicationWindow {
     void handle_media (Media media) {
         media.pipeline.error.connect (display_error);
 
-        var content = new ClutterGst.Aspectratio ();
-        stage.content = content;
-        content.sink = media.pipeline.video_sink;
-
         media.tags.tag_updated.connect (update_title);
 
         stack.visible_child = stage_embed;
@@ -263,11 +257,6 @@ class MainWindow : Gtk.ApplicationWindow {
         action = new SimpleAction ("close-media", null);
         action.activate.connect (() => controller.media_closed ());
         this.add_action (action);
-
-        // setup stage
-
-        stage = stage_embed.get_stage ();
-        stage.background_color = {0, 0, 0, 0};
 
         // handle controller events
 
