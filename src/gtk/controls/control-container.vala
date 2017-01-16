@@ -76,5 +76,7 @@ class ControlContainer : Gtk.Revealer {
             "/so/bob131/Videos/data/key-bindings.css");
         this.get_style_context ().add_provider (css_provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        Bus.@get ().pipeline_event["eos"].connect (() => show_controls ());
     }
 }

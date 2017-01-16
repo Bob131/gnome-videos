@@ -30,6 +30,7 @@ class AppController : Object {
     }
 
     AppController () {
+        Bus.@get ().pipeline_event["eos"].connect (() => fullscreen = false);
         Bus.@get ().error.connect_after (() => media_closed ());
     }
 
