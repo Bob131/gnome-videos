@@ -73,18 +73,12 @@ class PlaybackController : Object {
         now_playing.pipeline.set_state ((Gst.State) new_state);
     }
 
-    void handle_pipeline_event (Event event) {
-        switch (event.event_type) {
-            case EventType.EOS:
-                has_eos = true;
-                paused = true;
-                break;
-        }
-    }
-
     public PlaybackController (File file) {
         now_playing = new Media (file);
-        now_playing.pipeline.event.connect (handle_pipeline_event);
+        Bus.@get ().pipeline_event["eos"].connect (() => {
+            has_eos = true;
+            paused = true;
+        });
 
         this.notify["state"].connect (() => state_changed (state));
         playing = true;

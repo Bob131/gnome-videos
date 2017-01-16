@@ -10,15 +10,13 @@ class Tags : Object {
     HashTable<string, List<ValueWrapper>> table =
         new HashTable<string, List<ValueWrapper>> (str_hash, str_equal);
 
-    public new unowned Value @get (string tag) {
-        return table[tag].data.@value;
-    }
+    /* public new unowned Value @get (string tag) { */
+    /*     return table[tag].data.@value; */
+    /* } */
 
-    public unowned List<ValueWrapper> get_list (string tag) {
-        return table[tag];
-    }
-
-    public signal void tag_updated (string name);
+    /* public unowned List<ValueWrapper> get_list (string tag) { */
+    /*     return table[tag]; */
+    /* } */
 
     public void add (Gst.TagList tags) {
         tags.foreach ((_, tag) => {
@@ -33,7 +31,12 @@ class Tags : Object {
                 list.prepend (new ValueWrapper ((owned) owned_value));
 
             table[tag] = (owned) list;
-            tag_updated (tag);
+            Bus.@get ().tag_updated[tag] (table[tag]);
         });
+    }
+
+    construct {
+        Bus.@get ().pipeline_event["tag"].connect (
+            (event) => add (event.parse_tags ()));
     }
 }

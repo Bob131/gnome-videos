@@ -25,12 +25,6 @@ class MainWindow : Gtk.ApplicationWindow {
         stack.visible_child = greeter;
     }
 
-    void update_title (string tag_name) {
-        if (tag_name == Gst.Tags.TITLE)
-            this.title =
-                (string) controller.playback.now_playing.tags[tag_name];
-    }
-
     void display_error (Error e) {
         var dialog = new Gtk.MessageDialog (this, Gtk.DialogFlags.MODAL,
             Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, "%s: %s",
@@ -153,8 +147,6 @@ class MainWindow : Gtk.ApplicationWindow {
     void handle_media (Media media) {
         media.pipeline.error.connect (display_error);
 
-        media.tags.tag_updated.connect (update_title);
-
         stack.visible_child = stage_embed;
         stage_embed.controls.activity ();
 
@@ -228,6 +220,11 @@ class MainWindow : Gtk.ApplicationWindow {
     public MainWindow () {
         Object (application: (Gtk.Application) Application.get_default (),
             title: "Videos");
+
+        Bus.@get ().tag_updated[Gst.Tags.TITLE].connect ((values) => {
+            return_if_fail (values.length () > 0);
+            this.title = values.data.@value.get_string ();
+        });
 
         // bind preferences
 

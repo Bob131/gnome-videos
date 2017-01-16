@@ -8,6 +8,13 @@ enum EventType {
     STREAM_COLLECTION,
     STREAM_SELECTION;
 
+    public string to_nick () {
+        EnumClass @class = (EnumClass) typeof (EventType).class_ref ();
+        unowned EnumValue? @value = @class.get_value (this);
+        return_if_fail (@value != null);
+        return ((!) @value).value_nick;
+    }
+
     public static EventType from_event_type (Gst.EventType type) {
         switch (type) {
             case Gst.EventType.EOS:

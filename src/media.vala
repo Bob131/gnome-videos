@@ -48,10 +48,7 @@ class Media : Object {
                 if (!(event is BusEvent))
                     return;
 
-                Nanoseconds tmp;
-                return_if_fail (
-                    pipeline.query_duration (Gst.Format.TIME, out tmp));
-                got_duration (tmp);
+                got_duration (pipeline.get_duration ());
 
                 break;
 
@@ -83,17 +80,13 @@ class Media : Object {
                 selected_streams_updated (selected_streams);
 
                 break;
-
-            case EventType.TAG:
-                tags.add (event.parse_tags ());
-                break;
         }
     }
 
     public Media (File file) {
         Object (file: file, tags: new Tags ());
 
-        pipeline = new Pipeline (this);
-        pipeline.event.connect (handle_message);
+        pipeline = new Pipeline (file);
+        Bus.@get ().pipeline_event.connect (handle_message);
     }
 }

@@ -1,6 +1,4 @@
 class Pipeline : Gst.Pipeline {
-    public weak Media media {construct; get;}
-
     dynamic Gst.Element source;
     dynamic Gst.Element decoder;
 
@@ -9,8 +7,6 @@ class Pipeline : Gst.Pipeline {
     public SubOverlayConverter subtitle_overlay;
 
     const string extra_subtitle_caps = "application/x-ass; application/x-ssa";
-
-    public signal void event (Event event);
 
     void handle_decoder_pad (Gst.Pad pad) {
         if ((void*) pad.template == null)
@@ -30,7 +26,8 @@ class Pipeline : Gst.Pipeline {
             event_copy.timestamp = event.timestamp;
 
             Idle.add (() => {
-                this.event (new PadEvent (event_copy));
+                var ev = new PadEvent (event_copy);
+                Bus.@get ().pipeline_event[ev.event_type.to_nick ()] (ev);
                 return Source.REMOVE;
             });
 
@@ -87,6 +84,12 @@ class Pipeline : Gst.Pipeline {
         decoder.send_event (event);
     }
 
+    public Nanoseconds get_duration () {
+        Nanoseconds ret;
+        return_if_fail (this.query_duration (Gst.Format.TIME, out ret));
+        return ret;
+    }
+
     public Nanoseconds get_position () {
         Nanoseconds ret;
         this.query_position (Gst.Format.TIME, out ret);
@@ -96,7 +99,7 @@ class Pipeline : Gst.Pipeline {
     public new void seek (Nanoseconds pos)
         requires (this.current_state >= Gst.State.PAUSED)
     {
-        pos = pos.clamp (0, media.duration);
+        pos = pos.clamp (0, get_duration ());
         if (!this.seek_simple (Gst.Format.TIME, Gst.SeekFlags.FLUSH, pos))
             warning ("Seek failed!");
     }
@@ -119,13 +122,16 @@ class Pipeline : Gst.Pipeline {
                 break;
         }
 
-        event (new BusEvent (message));
+        var event = new BusEvent (message);
+        Bus.@get ().pipeline_event[event.event_type.to_nick ()] (event);
     }
 
     bool has_video;
 
-    void detect_video (Gst.StreamCollection streams) {
+    void detect_video (Event event) {
         has_video = false;
+
+        var streams = event.parse_streams ();
 
         for (var i = 0; i < streams.get_size (); i++)
             if (Gst.StreamType.VIDEO in streams.get_stream (i).stream_type) {
@@ -134,13 +140,13 @@ class Pipeline : Gst.Pipeline {
             }
     }
 
-    void handle_cover (string tag) {
-        if (has_video || tag != Gst.Tags.IMAGE)
+    void handle_cover (List<ValueWrapper> values) {
+        if (has_video)
             return;
 
         Gst.Sample? cover_sample = null;
 
-        foreach (var sample_wrapper in media.tags.get_list (Gst.Tags.IMAGE)) {
+        foreach (var sample_wrapper in values) {
             var sample = (Gst.Sample) sample_wrapper.@value;
 
             Gst.Caps caps = null_cast (sample.get_caps ());
@@ -184,9 +190,7 @@ class Pipeline : Gst.Pipeline {
         AppController.get_default ().media_closed ();
     }
 
-    public Pipeline (Media media) {
-        Object (media: media);
-
+    public Pipeline (File file) {
         source = null_cast (Gst.ElementFactory.make ("urisourcebin", "source"));
         decoder = null_cast (Gst.ElementFactory.make ("decodebin3", "decoder"));
 
@@ -210,13 +214,13 @@ class Pipeline : Gst.Pipeline {
 
         decoder.pad_added.connect (handle_decoder_pad);
 
-        media.got_streams.connect (detect_video);
-        media.tags.tag_updated.connect (handle_cover);
+        Bus.@get ().pipeline_event["stream-collection"].connect (detect_video);
+        Bus.@get ().tag_updated[Gst.Tags.IMAGE].connect (handle_cover);
 
         var bus = this.get_bus ();
         bus.add_signal_watch ();
         bus.message.connect (handle_bus_message);
 
-        source.uri = media.file.get_uri ();
+        source.uri = file.get_uri ();
     }
 }
