@@ -118,7 +118,7 @@ class Pipeline : Gst.Pipeline {
                 Error e; string debug;
                 message.parse_error (out e, out debug);
                 warning (debug);
-                error (e);
+                Bus.@get ().error (e);
                 break;
         }
 
@@ -183,11 +183,6 @@ class Pipeline : Gst.Pipeline {
         source.set_state (this.current_state);
 
         source.push_sample ((!) cover_sample);
-    }
-
-    [Signal (run = "last")]
-    public virtual signal void error (Error e) {
-        AppController.get_default ().media_closed ();
     }
 
     public Pipeline (File file) {

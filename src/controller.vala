@@ -29,7 +29,9 @@ class AppController : Object {
         playback = (PlaybackController) null;
     }
 
-    AppController () {}
+    AppController () {
+        Bus.@get ().error.connect_after (() => media_closed ());
+    }
 
     static AppController? instance;
 

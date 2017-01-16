@@ -10,6 +10,8 @@ class Bus : Object {
     [Signal (detailed = true)]
     public signal void tag_updated (List<ValueWrapper> values);
 
+    public signal void error (Error e);
+
     Bus () {}
 
     static Bus? instance;

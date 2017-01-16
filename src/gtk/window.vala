@@ -145,8 +145,6 @@ class MainWindow : Gtk.ApplicationWindow {
     }
 
     void handle_media (Media media) {
-        media.pipeline.error.connect (display_error);
-
         stack.visible_child = stage_embed;
         stage_embed.controls.activity ();
 
@@ -225,6 +223,8 @@ class MainWindow : Gtk.ApplicationWindow {
             return_if_fail (values.length () > 0);
             this.title = values.data.@value.get_string ();
         });
+
+        Bus.@get ().error.connect (display_error);
 
         // bind preferences
 
