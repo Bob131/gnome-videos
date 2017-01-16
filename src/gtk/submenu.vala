@@ -61,11 +61,15 @@ class RadioSubmenu : Submenu {
         foreach (var button in buttons)
             new_map[button.name] = button;
 
-        var buttons_to_remove = map.filter (
-            (e) => !new_map.has_key (e.key) && !permanent_map[e.@value]);
+        var map_iterator = map.map_iterator ();
 
-        while (buttons_to_remove.next ())
-            remove (buttons_to_remove.@get ().@value);
+        map_iterator.foreach ((key, @value) => {
+            if (!new_map.has_key (key) && !permanent_map[@value]) {
+                map_iterator.unset ();
+                remove (@value);
+            }
+            return true;
+        });
 
         foreach (var new_button in buttons)
             if (new_button in this)
