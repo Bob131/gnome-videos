@@ -11,12 +11,16 @@ gresources.c: gresources.xml $(resource_files)
 
 gnome_videos_SOURCES = \
 	gnome-videos.vala \
-	event.vala \
 	controller.vala \
 	media.vala \
-	pipeline.vala \
 	preferences.vala \
 	gresources.c \
+	gst/event.vala \
+	gst/gst-redefs.vapi \
+	gst/nanoseconds.vala \
+	gst/pipeline.vala \
+	gst/sub-overlay-converter.vala \
+	gst/tags.vala \
 	gtk/window.vala \
 	gtk/prefs.vala \
 	gtk/about.vala \
@@ -28,8 +32,7 @@ gnome_videos_SOURCES = \
 	gtk/controls/fullscreen-button.vala \
 	gtk/controls/seek-bar.vala \
 	bcmdec-workaround/crystalhd.vapi \
-	bcmdec-workaround/bcmdec-workaround.vala \
-	gst-redefs.vapi
+	bcmdec-workaround/bcmdec-workaround.vala
 
 gnome_videos_VALAFLAGS = \
 	--gresources gresources.xml \
