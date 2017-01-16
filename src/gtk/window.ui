@@ -52,7 +52,6 @@
     <child>
       <object class="RadioSubmenu" id="audio_track_selection_menu">
         <property name="title">Audio tracks</property>
-        <signal name="child-activated" handler="stream_selected"/>
       </object>
       <packing>
         <property name="submenu">audio-tracks</property>
@@ -62,7 +61,6 @@
     <child>
       <object class="RadioSubmenu" id="subtitle_selection_menu">
         <property name="title">Subtitles</property>
-        <signal name="child-activated" handler="stream_selected"/>
 
         <child>
           <object class="GtkModelButton">

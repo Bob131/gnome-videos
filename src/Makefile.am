@@ -28,6 +28,7 @@ gnome_videos_SOURCES = \
 	gtk/shortcut-window.vala \
 	gtk/stage-embed.vala \
 	gtk/submenu.vala \
+	gtk/stream-manager.vala \
 	gtk/controls/control-container.vala \
 	gtk/controls/play-button.vala \
 	gtk/controls/fullscreen-button.vala \

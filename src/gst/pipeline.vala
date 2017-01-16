@@ -4,7 +4,7 @@ class Pipeline : Gst.Pipeline {
 
     Gst.Element audio_sink;
     ClutterGst.VideoSink video_sink;
-    public SubOverlayConverter subtitle_overlay;
+    SubOverlayConverter subtitle_overlay;
 
     const string extra_subtitle_caps = "application/x-ass; application/x-ssa";
 
@@ -199,6 +199,7 @@ class Pipeline : Gst.Pipeline {
         subtitle_overlay = new SubOverlayConverter ();
 
         Bus.@get ().object_constructed["video-sink"] (video_sink);
+        Bus.@get ().object_constructed["subtitle-sink"] (subtitle_overlay);
 
         this.add_many (source, decoder);
 
