@@ -38,7 +38,7 @@ class StageEmbed : GtkClutter.Embed {
                 uint button;
                 event.get_button (out button);
 
-                if (button == 1)
+                if (button == 1 && !controls.mouse_over)
                     controller.fullscreen ^= true;
 
                 break;

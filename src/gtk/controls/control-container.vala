@@ -1,7 +1,8 @@
 [GtkTemplate (ui = "/so/bob131/Videos/gtk/controls/control-container.ui")]
 class ControlContainer : Gtk.Revealer {
+    public bool mouse_over {private set; get;}
+
     bool should_reveal = true;
-    bool mouse_over = false;
 
     AppController controller = AppController.get_default ();
 
