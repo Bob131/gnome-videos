@@ -84,17 +84,10 @@ class StreamManager : Object {
             var stream = selected_cache.get_stream (i);
             string stream_name = null_cast (stream.get_stream_id ());
 
-            if (stream_name == menu.selected_child.name) {
-                if (menu == subtitles && selected_name == "none")
-                    subtitle_sink.enable_subtitles = false;
-                else {
-                    subtitle_sink.enable_subtitles = true;
-                    stream_list.append (selected_name);
-                    continue;
-                }
-            }
-
-            stream_list.append (stream_name);
+            if (stream_name == menu.selected_child.name)
+                stream_list.append (selected_name);
+            else
+                stream_list.append (stream_name);
         }
 
         pipeline.select_streams (stream_list);
@@ -163,6 +156,18 @@ class StreamManager : Object {
         });
 
         audio.child_activated.connect (stream_selected);
-        subtitles.child_activated.connect (stream_selected);
+
+        subtitles.child_activated.connect ((selected_name) => {
+            if (selected_name == "none") {
+                subtitle_sink.enable_subtitles = false;
+                subtitles.select_child_by_name ("none");
+                return;
+            }
+
+            subtitle_sink.enable_subtitles = true;
+            subtitles.select_child_by_name (selected_name);
+
+            stream_selected (subtitles, selected_name);
+        });
     }
 }
