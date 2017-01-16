@@ -93,18 +93,6 @@ class Pipeline : Gst.Pipeline {
         return ret;
     }
 
-    void sync_controller_state (PlayerState new_controller_state) {
-        // if we're playing from the end of a file, rewind first
-        if (new_controller_state == PlayerState.PLAYING && media.duration > 0
-                && get_position () == media.duration)
-            seek (0);
-
-        var new_state = (Gst.State) new_controller_state;
-        if (this.set_state (new_state) == Gst.StateChangeReturn.FAILURE)
-            warning ("State transition failed: %s -> %s",
-                this.current_state.to_string (), new_state.to_string ());
-    }
-
     public new void seek (Nanoseconds pos)
         requires (this.current_state >= Gst.State.PAUSED)
     {
@@ -128,10 +116,6 @@ class Pipeline : Gst.Pipeline {
                 message.parse_error (out e, out debug);
                 warning (debug);
                 error (e);
-                break;
-
-            case Gst.MessageType.EOS:
-                media.playback_controller.paused = true;
                 break;
         }
 
@@ -225,9 +209,6 @@ class Pipeline : Gst.Pipeline {
         });
 
         decoder.pad_added.connect (handle_decoder_pad);
-
-        media.playback_controller.state_changed.connect (
-            sync_controller_state);
 
         media.got_streams.connect (detect_video);
         media.tags.tag_updated.connect (handle_cover);

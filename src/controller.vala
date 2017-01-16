@@ -61,10 +61,31 @@ class PlaybackController : Object {
         get { return state == PlayerState.PLAYING; }
     }
 
-    public signal void state_changed (PlayerState new_state);
+    bool has_eos;
+
+    public virtual signal void state_changed (PlayerState new_state) {
+        // if we're playing from the end of a file, rewind first
+        if (new_state == PlayerState.PLAYING && has_eos) {
+            now_playing.pipeline.seek (0);
+            has_eos = false;
+        }
+
+        now_playing.pipeline.set_state ((Gst.State) new_state);
+    }
+
+    void handle_pipeline_event (Event event) {
+        switch (event.event_type) {
+            case EventType.EOS:
+                has_eos = true;
+                paused = true;
+                break;
+        }
+    }
 
     public PlaybackController (File file) {
-        now_playing = new Media (this, file);
+        now_playing = new Media (file);
+        now_playing.pipeline.event.connect (handle_pipeline_event);
+
         this.notify["state"].connect (() => state_changed (state));
         playing = true;
     }

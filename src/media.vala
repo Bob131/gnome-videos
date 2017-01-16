@@ -1,5 +1,4 @@
 class Media : Object {
-    public weak PlaybackController playback_controller {construct; get;}
     public File file {construct; get;}
     public Tags tags {construct; get;}
     public Pipeline pipeline {private set; get;}
@@ -91,11 +90,10 @@ class Media : Object {
         }
     }
 
-    public Media (PlaybackController controller, File file) {
-        Object (playback_controller: controller, file: file, tags: new Tags ());
+    public Media (File file) {
+        Object (file: file, tags: new Tags ());
 
         pipeline = new Pipeline (this);
-
         pipeline.event.connect (handle_message);
     }
 }
