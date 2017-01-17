@@ -55,12 +55,16 @@ class StageEmbed : GtkClutter.Embed {
     }
 
     void update_controls_actor () {
-        if (controls_preferred_height == 0)
-            controls.get_preferred_height (null, out controls_preferred_height);
+        Gtk.Requisition natural_size;
+        controls.get_preferred_size (null, out natural_size);
+        controls_preferred_height = natural_size.height;
 
         controls_actor.width = stage.width;
         controls_actor.height = controls_preferred_height;
         controls_actor.y = stage.height - controls_preferred_height;
+
+        controls.size_allocate ({0, 0, (int) controls_actor.width,
+            (int) controls_actor.height});
     }
 
     void set_sink (Object sink)
