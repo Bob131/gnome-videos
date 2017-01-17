@@ -26,8 +26,7 @@ class Pipeline : Gst.Pipeline {
             event_copy.timestamp = event.timestamp;
 
             Idle.add (() => {
-                var ev = new PadEvent (event_copy);
-                Bus.@get ().pipeline_event[ev.event_type.to_nick ()] (ev);
+                Bus.@get ().emit_pipeline_event (new PadEvent (event_copy));
                 return Source.REMOVE;
             });
 
@@ -122,8 +121,7 @@ class Pipeline : Gst.Pipeline {
                 break;
         }
 
-        var event = new BusEvent (message);
-        Bus.@get ().pipeline_event[event.event_type.to_nick ()] (event);
+        Bus.@get ().emit_pipeline_event (new BusEvent (message));
     }
 
     bool has_video;

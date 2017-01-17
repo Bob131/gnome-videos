@@ -6,7 +6,8 @@ enum EventType {
     TAG,
     STREAM_START,
     STREAM_COLLECTION,
-    STREAM_SELECTION;
+    STREAM_SELECTION,
+    TOC;
 
     public string to_nick () {
         EnumClass @class = (EnumClass) typeof (EventType).class_ref ();
@@ -27,6 +28,8 @@ enum EventType {
                 return STREAM_COLLECTION;
             case Gst.EventType.SELECT_STREAMS:
                 return STREAM_SELECTION;
+            case Gst.EventType.TOC:
+                return TOC;
             default:
                 return UNKNOWN;
         }
@@ -44,6 +47,8 @@ enum EventType {
                 return STREAM_COLLECTION;
             case Gst.MessageType.STREAMS_SELECTED:
                 return STREAM_SELECTION;
+            case Gst.MessageType.TOC:
+                return TOC;
             default:
                 return UNKNOWN;
         }
@@ -62,13 +67,17 @@ class PadEvent : Event<Gst.Event> {
         return EventType.from_event_type (data.type);
     }}
 
-    public override Gst.TagList parse_tags () {
+    public override Gst.TagList parse_tags ()
+        requires (event_type == EventType.TAG)
+    {
         Gst.TagList tags;
         data.parse_tag (out tags);
         return (owned) tags;
     }
 
-    public override Gst.StreamCollection parse_streams () {
+    public override Gst.StreamCollection parse_streams ()
+        requires (event_type == EventType.STREAM_COLLECTION)
+    {
         Gst.StreamCollection streams;
         data.parse_stream_collection (out streams);
         return streams;
@@ -84,13 +93,17 @@ class BusEvent : Event<Gst.Message> {
         return EventType.from_message_type (data.type);
     }}
 
-    public override Gst.TagList parse_tags () {
+    public override Gst.TagList parse_tags ()
+        requires (event_type == EventType.TAG)
+    {
         Gst.TagList tags;
         data.parse_tag (out tags);
         return (owned) tags;
     }
 
-    public override Gst.StreamCollection parse_streams () {
+    public override Gst.StreamCollection parse_streams ()
+        requires (event_type == EventType.STREAM_COLLECTION)
+    {
         Gst.StreamCollection streams;
         data.parse_stream_collection (out streams);
         return streams;

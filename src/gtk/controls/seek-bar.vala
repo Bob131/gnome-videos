@@ -40,6 +40,7 @@ class SeekBar : Gtk.Overlay {
     void update_bar () {
         if (!controller.media_loaded) {
             duration = 0;
+            scale.clear_marks ();
             scale.set_value (0);
             scale.set_range (0, 0);
             return;
@@ -52,6 +53,35 @@ class SeekBar : Gtk.Overlay {
         this.duration = duration;
         scale.set_range (0, duration);
         media.got_duration.disconnect (got_duration_handler);
+    }
+
+    static void flatten_toc_entries (
+        Gst.TocEntry entry,
+        ref List<Gst.TocEntry> list
+    ) {
+        list.append (entry);
+        foreach (var sub_entry in entry.get_sub_entries ())
+            flatten_toc_entries (sub_entry, ref list);
+    }
+
+    void handle_toc (Gst.Message message) {
+        Gst.Toc toc;
+        message.parse_toc (out toc, null);
+
+        var list = new List<Gst.TocEntry> ();
+        foreach (var entry in toc.get_entries ())
+            flatten_toc_entries (entry, ref list);
+
+        foreach (var entry in list) {
+            if (entry.get_entry_type () != Gst.TocEntryType.CHAPTER)
+                continue;
+
+            Nanoseconds stop;
+            if (!entry.get_start_stop_times (null, out stop))
+                continue;
+
+            scale.add_mark (stop, Gtk.PositionType.TOP, null);
+        }
     }
 
     construct {
@@ -72,5 +102,8 @@ class SeekBar : Gtk.Overlay {
             update_label ();
             return Source.CONTINUE;
         });
+        update_label ();
+
+        Bus.@get ().pipeline_message["toc"].connect (handle_toc);
     }
 }
