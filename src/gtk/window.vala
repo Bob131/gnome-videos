@@ -50,7 +50,6 @@ class MainWindow : Gtk.ApplicationWindow {
 
     void handle_media (Media media) {
         stack.visible_child = stage_embed;
-        stage_embed.controls.activity ();
 
         controller.playback.state_changed.connect (inhibit_toggle);
         inhibit_toggle (PlayerState.PLAYING);

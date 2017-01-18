@@ -1,6 +1,10 @@
 // A "bus" to facilitate communication between objects without having to walk
 // the ownership tree
 class Bus : Object {
+    // Whether any application state should prevent us from considering the user
+    // as 'idly watching'
+    public bool idle_blocker {private set; get;}
+
     [Signal (detailed = true)]
     public signal void object_constructed (Object object);
 
@@ -28,6 +32,38 @@ class Bus : Object {
     public signal void tag_updated (List<ValueWrapper> values);
 
     public signal void error (Error e);
+
+    public signal void activity ();
+    public signal void inactivity_timeout ();
+
+    uint total_holds;
+    Gee.HashMap<Object, uint> idle_holds = new Gee.HashMap<Object, int> ();
+
+    public void idle_hold (Object object) {
+        if (!idle_holds.has_key (object))
+            idle_holds[object] = 0;
+
+        idle_holds[object] = idle_holds[object] + 1;
+        total_holds++;
+
+        if (!idle_blocker)
+            activity ();
+
+        idle_blocker = true;
+    }
+
+    public void idle_release (Object object) {
+        if (!idle_holds.has_key (object))
+            return;
+
+        idle_holds[object] = idle_holds[object] - 1;
+        if (idle_holds[object] == 0)
+            idle_holds.unset (object);
+
+        total_holds--;
+        if (total_holds == 0)
+            idle_blocker = false;
+    }
 
     Bus () {}
 

@@ -1,7 +1,6 @@
 class StageEmbed : GtkClutter.Embed {
-    public ControlContainer controls {private set; get;}
+    ControlContainer controls;
 
-    Timer timer;
     AppController controller = AppController.get_default ();
 
     Clutter.Actor stage;
@@ -10,11 +9,17 @@ class StageEmbed : GtkClutter.Embed {
     int controls_preferred_height = 0;
 
     void show_cursor () {
+        if (!this.visible)
+            return;
+
         Gdk.Window window = null_cast (this.get_window ());
         window.set_cursor (null);
     }
 
     void hide_cursor () {
+        if (!this.visible)
+            return;
+
         Gdk.Window window = null_cast (this.get_window ());
         window.cursor = new Gdk.Cursor.for_display (window.get_display (),
             Gdk.CursorType.BLANK_CURSOR);
@@ -24,14 +29,7 @@ class StageEmbed : GtkClutter.Embed {
         switch (event.type) {
             case Gdk.EventType.MOTION_NOTIFY:
             case Gdk.EventType.ENTER_NOTIFY:
-                show_cursor ();
-                controls.activity ();
-                timer.start ();
-                break;
-
-            case Gdk.EventType.LEAVE_NOTIFY:
-                timer.stop ();
-                timer.reset ();
+                Bus.@get ().activity ();
                 break;
 
             case Gdk.EventType.DOUBLE_BUTTON_PRESS:
@@ -76,18 +74,7 @@ class StageEmbed : GtkClutter.Embed {
     }
 
     construct {
-        timer = new Timer ();
-        timer.stop ();
-        timer.reset ();
-
         this.event_after.connect (handle_event);
-
-        Timeout.add (500, () => {
-            if (this.visible && timer.elapsed () > 2)
-                hide_cursor ();
-
-            return Source.CONTINUE;
-        });
 
         stage = this.get_stage ();
         stage.background_color = {0, 0, 0, 0};
@@ -99,7 +86,16 @@ class StageEmbed : GtkClutter.Embed {
         controls_actor.get_widget ().show_all ();
 
         stage.notify["size"].connect_after (update_controls_actor);
+        Bus.@get ().activity.connect_after (
+            () => Timeout.add (controls.transition_duration, () => {
+                update_controls_actor ();
+                return Source.REMOVE;
+            })
+        );
 
         Bus.@get ().object_constructed["video-sink"].connect (set_sink);
+
+        Bus.@get ().activity.connect (show_cursor);
+        Bus.@get ().inactivity_timeout.connect (hide_cursor);
     }
 }
