@@ -5,8 +5,23 @@ class Bus : Object {
     // as 'idly watching'
     public bool idle_blocker {private set; get;}
 
+    Gee.HashMap<Type, unowned Object> instances =
+        new Gee.HashMap<Type, unowned Object> ();
+
     [Signal (detailed = true)]
-    public signal void object_constructed (Object object);
+    public virtual signal void object_constructed (Object object) {
+        var type = object.get_type ();
+        return_if_fail (!instances.has_key (type));
+        object.weak_ref (() => instances.unset (type));
+        instances[type] = object;
+    }
+
+    public unowned T get_instance<T> ()
+        requires (typeof (T).is_a (typeof (Object)))
+        requires (instances.has_key (typeof (T)))
+    {
+        return instances[typeof (T)];
+    }
 
     [Signal (detailed = true)]
     public signal void pipeline_pad_event (Gst.Event event);

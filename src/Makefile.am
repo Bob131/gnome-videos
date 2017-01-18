@@ -16,6 +16,8 @@ gnome_videos_SOURCES = \
 	media.vala \
 	preferences.vala \
 	gresources.c \
+	devices/device.vala \
+	devices/uri.vala \
 	gst/event.vala \
 	gst/gst-redefs.vapi \
 	gst/nanoseconds.vala \

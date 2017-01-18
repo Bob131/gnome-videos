@@ -44,7 +44,7 @@ class ControlContainer : Gtk.Revealer {
     [Signal (action = true)]
     public virtual signal void seek_frame (int frames) {
         controller.playback.paused = true;
-        controller.playback.now_playing.pipeline.frame_step (frames);
+        Bus.@get ().get_instance<Pipeline> ().frame_step (frames);
         Bus.@get ().activity ();
     }
 

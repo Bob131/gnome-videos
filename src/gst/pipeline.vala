@@ -183,8 +183,12 @@ class Pipeline : Gst.Pipeline {
         source.push_sample ((!) cover_sample);
     }
 
-    public Pipeline (File file) {
-        source = null_cast (Gst.ElementFactory.make ("urisourcebin", "source"));
+    ~Pipeline () {
+        this.set_state (Gst.State.NULL);
+    }
+
+    public Pipeline (Device device) {
+        source = device.make_source ();
         decoder = null_cast (Gst.ElementFactory.make ("decodebin3", "decoder"));
 
         unowned Gst.Caps decoder_caps = decoder.caps;
@@ -215,6 +219,6 @@ class Pipeline : Gst.Pipeline {
         bus.add_signal_watch ();
         bus.message.connect (handle_bus_message);
 
-        source.uri = file.get_uri ();
+        Bus.@get ().object_constructed["pipeline"] (this);
     }
 }

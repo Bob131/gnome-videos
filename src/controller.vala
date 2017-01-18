@@ -16,7 +16,7 @@ class AppController : Object {
 
     public void open_file (File file) {
         media_closed ();
-        playback = new PlaybackController (file);
+        playback = new PlaybackController (new UriDevice (file));
         media_opened (playback.now_playing);
     }
 
@@ -25,7 +25,6 @@ class AppController : Object {
         if (!media_loaded)
             return;
 
-        playback.now_playing.pipeline.set_state (Gst.State.NULL);
         playback = (PlaybackController) null;
     }
 
@@ -48,11 +47,13 @@ class PlaybackController : Object {
     public PlayerState state {private set; get; default = PlayerState.PAUSED;}
     public Media now_playing {private set; get;}
 
+    Pipeline pipeline;
+
     bool has_eos;
 
     public Nanoseconds position {
-        set { has_eos = false; now_playing.pipeline.seek (value); }
-        get { return now_playing.pipeline.get_position (); }
+        set { has_eos = false; pipeline.seek (value); }
+        get { return pipeline.get_position (); }
     }
 
     [CCode (notify = false)]
@@ -97,7 +98,7 @@ class PlaybackController : Object {
     public virtual signal void state_changed (PlayerState new_state) {
         // if we're playing from the end of a file, rewind first
         if (new_state == PlayerState.PLAYING && has_eos) {
-            now_playing.pipeline.seek (0);
+            pipeline.seek (0);
             has_eos = false;
         }
 
@@ -106,15 +107,17 @@ class PlaybackController : Object {
         else
             Bus.@get ().idle_hold (this);
 
-        now_playing.pipeline.set_state ((Gst.State) new_state);
+        pipeline.set_state ((Gst.State) new_state);
     }
 
-    public PlaybackController (File file) {
-        now_playing = new Media (file);
+    public PlaybackController (Device device) {
+        now_playing = new Media ();
         Bus.@get ().pipeline_event["eos"].connect (() => {
             has_eos = true;
             paused = true;
         });
+
+        pipeline = new Pipeline (device);
 
         Bus.@get ().activity.connect (handle_activity);
         Bus.@get ().notify["idle-blocker"].connect (handle_activity);
