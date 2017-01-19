@@ -18,6 +18,8 @@ gnome_videos_SOURCES = \
 	gresources.c \
 	devices/device.vala \
 	devices/uri.vala \
+	devices/libbluray.vapi \
+	devices/bluray.vala \
 	gst/event.vala \
 	gst/gst-redefs.vapi \
 	gst/nanoseconds.vala \

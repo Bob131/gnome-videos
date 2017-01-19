@@ -5,8 +5,13 @@
 
       <item>
         <attribute name="label">_Open File</attribute>
-        <attribute name="action">win.open</attribute>
+        <attribute name="action">win.open-file</attribute>
         <attribute name="accel">&lt;ctrl&gt;O</attribute>
+      </item>
+
+      <item>
+        <attribute name="label">_Open Device</attribute>
+        <attribute name="action">win.open-device</attribute>
       </item>
 
     </section>

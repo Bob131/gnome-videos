@@ -205,10 +205,13 @@ class Pipeline : Gst.Pipeline {
 
         this.add_many (source, decoder);
 
-        source.pad_added.connect ((pad) => {
-            if (!source.link (decoder))
-                warning ("Failed to link source to decoder");
-        });
+        if (source.srcpads.length () > 0)
+            warn_if_fail (source.link (decoder));
+        else
+            source.pad_added.connect ((pad) => {
+                if (!source.link (decoder))
+                    warning ("Failed to link source to decoder");
+            });
 
         decoder.pad_added.connect (handle_decoder_pad);
 

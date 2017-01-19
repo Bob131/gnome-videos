@@ -38,6 +38,7 @@ PKG_CHECK_MODULES(gnome_videos_U, [
   clutter-gst-3.0
   gstreamer-tag-1.0
   gstreamer-app-1.0
+  libbluray
 ])
 
 if test "$host_cpu" = "x86_64"; then

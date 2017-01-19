@@ -104,6 +104,23 @@ class MainWindow : Gtk.ApplicationWindow {
         chooser.destroy ();
     }
 
+    void open_device_selection_dialog () {
+        var chooser = new Gtk.FileChooserDialog ("Browse to device", this,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            "_Cancel", Gtk.ResponseType.CANCEL,
+            "_Open", Gtk.ResponseType.ACCEPT);
+
+        if (chooser.run () == Gtk.ResponseType.ACCEPT) {
+            var file = chooser.get_file ();
+            Idle.add (() => {
+                controller.open_file (file);
+                return Source.REMOVE;
+            });
+        }
+
+        chooser.destroy ();
+    }
+
     [GtkCallback]
     bool greeter_click (Gdk.EventButton event) {
         // only handle single left-clicks
@@ -139,8 +156,12 @@ class MainWindow : Gtk.ApplicationWindow {
         action.activate.connect (() => build_prefs_dialog (this).run ());
         this.add_action (action);
 
-        action = new SimpleAction ("open", null);
+        action = new SimpleAction ("open-file", null);
         action.activate.connect (open_file_selection_dialog);
+        this.add_action (action);
+
+        action = new SimpleAction ("open-device", null);
+        action.activate.connect (open_device_selection_dialog);
         this.add_action (action);
 
         action = new SimpleAction ("about", null);

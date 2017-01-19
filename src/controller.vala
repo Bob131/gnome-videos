@@ -15,8 +15,24 @@ class AppController : Object {
     public signal void media_opened (Media media);
 
     public void open_file (File file) {
+        Device device;
+
+        if (file.query_file_type (FileQueryInfoFlags.NONE)
+            == FileType.DIRECTORY)
+        {
+            message ("Device detected");
+
+            try {
+                device = Device.new_from_directory (file);
+            } catch (Error e) {
+                Bus.@get ().error (e);
+                return;
+            }
+        } else
+            device = new UriDevice (file);
+
         media_closed ();
-        playback = new PlaybackController (new UriDevice (file));
+        playback = new PlaybackController (device);
         media_opened (playback.now_playing);
     }
 

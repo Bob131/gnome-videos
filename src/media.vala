@@ -9,10 +9,7 @@ class Media : Object {
     public Media () {
         Object (tags: new Tags ());
 
-        Bus.@get ().pipeline_event["stream-start"].connect ((event) => {
-            if (!(event is BusEvent))
-                return;
-
+        Bus.@get ().pipeline_message["stream-start"].connect (() => {
             Pipeline pipeline = Bus.@get ().get_instance ();
             got_duration (pipeline.get_duration ());
         });
