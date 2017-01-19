@@ -8,11 +8,16 @@ class Bus : Object {
     Gee.HashMap<Type, unowned Object> instances =
         new Gee.HashMap<Type, unowned Object> ();
 
+    void clear_instance (Object object) {
+        instances.unset (object.get_type ());
+        object.weak_unref (clear_instance);
+    }
+
     [Signal (detailed = true)]
     public virtual signal void object_constructed (Object object) {
         var type = object.get_type ();
         return_if_fail (!instances.has_key (type));
-        object.weak_ref (() => instances.unset (type));
+        object.weak_ref (clear_instance);
         instances[type] = object;
     }
 
@@ -54,9 +59,21 @@ class Bus : Object {
     uint total_holds;
     Gee.HashMap<Object, uint> idle_holds = new Gee.HashMap<Object, int> ();
 
+    void clear_idles (Object object) {
+        uint holds;
+        idle_holds.unset (object, out holds);
+        total_holds -= holds;
+        if (total_holds == 0)
+            idle_blocker = false;
+
+        object.weak_unref (clear_idles);
+    }
+
     public void idle_hold (Object object) {
-        if (!idle_holds.has_key (object))
+        if (!idle_holds.has_key (object)) {
             idle_holds[object] = 0;
+            object.weak_ref (clear_idles);
+        }
 
         idle_holds[object] = idle_holds[object] + 1;
         total_holds++;

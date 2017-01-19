@@ -25,6 +25,7 @@ class AppController : Object {
         if (!media_loaded)
             return;
 
+        playback.state_changed ((PlayerState) Gst.State.NULL);
         playback = (PlaybackController) null;
     }
 
