@@ -1,5 +1,6 @@
-class BluraySource : Gst.Base.PushSrc {
+class BluraySource : Gst.Base.PushSrc, Gst.TocSetter {
     Bluray.Disc disc;
+    bool new_toc;
 
     const double BD_TIMEBASE = 90000;
     const double GST_TIMEBASE = Gst.SECOND;
@@ -25,6 +26,27 @@ class BluraySource : Gst.Base.PushSrc {
                     new Gst.StreamError.FAILED (error_type_string),
                     error_type_string);
                 this.post_message (error_message);
+                break;
+
+            case Bluray.EventType.TITLE:
+                var title_info = get_title_info (),
+                    toc = new Gst.Toc (Gst.TocScope.CURRENT);
+
+                foreach (unowned Bluray.TitleChapter chapter
+                    in title_info.chapters)
+                {
+                    var toc_entry = new Gst.TocEntry (Gst.TocEntryType.CHAPTER,
+                        chapter.index.to_string ());
+                    var start = bd_time_to_gst (chapter.start);
+                    toc_entry.set_start_stop_times (start,
+                        start + bd_time_to_gst (chapter.duration));
+                    toc.append_entry ((Gst.TocEntry)
+                        Gst.mini_object_make_writable (toc_entry));
+                }
+
+                new_toc = true;
+                this.set_toc (toc);
+
                 break;
 
             default:
@@ -99,6 +121,20 @@ class BluraySource : Gst.Base.PushSrc {
         disc.select_title (disc.get_main_title ());
 
         return true;
+    }
+
+    public override void state_changed (
+        Gst.State old,
+        Gst.State @new,
+        Gst.State pending
+    ) {
+        var toc = this.get_toc ();
+        if (toc != null) {
+            var gst_event = new Gst.Event.toc ((!) toc, !new_toc);
+            if (new_toc)
+                new_toc = false;
+            this.srcpads.nth_data (0).push_event (gst_event);
+        }
     }
 
     public BluraySource (owned Bluray.Disc disc) {

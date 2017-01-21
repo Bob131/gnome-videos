@@ -118,8 +118,7 @@ namespace Bluray {
     }
 
     [CCode (cname = "BLURAY_TITLE")]
-    [Compact]
-    public class Title {
+    public struct Title {
         public string? name;
         [CCode (type = "uint8_t")]
         public bool interactive;
@@ -133,8 +132,7 @@ namespace Bluray {
     }
 
     [CCode (cname = "BLURAY_STREAM_INFO")]
-    [Compact]
-    public class StreamInfo {
+    public struct StreamInfo {
         public uint8 coding_type;
         public uint8 format;
         public uint8 rate;
@@ -146,8 +144,7 @@ namespace Bluray {
     }
 
     [CCode (cname = "BLURAY_CLIP_INFO")]
-    [Compact]
-    public class ClipInfo {
+    public struct ClipInfo {
         [CCode (cname = "pkt_count")]
         public uint32 packet_count;
         public uint8 still_mode;
@@ -170,8 +167,7 @@ namespace Bluray {
     }
 
     [CCode (cname = "BLURAY_TITLE_CHAPTER")]
-    [Compact]
-    public class TitleChapter {
+    public struct TitleChapter {
         [CCode (cname = "idx")]
         public uint32 index;
         public uint64 start;
@@ -181,8 +177,7 @@ namespace Bluray {
     }
 
     [CCode (cname = "BLURAY_TITLE_MARK")]
-    [Compact]
-    public class TitleMark {
+    public struct TitleMark {
         [CCode (cname = "idx")]
         public uint32 index;
         public int type;
@@ -203,14 +198,13 @@ namespace Bluray {
         [CCode (array_length_cname = "clip_count", array_length_type = "uint32")]
         public ClipInfo[] clips;
         [CCode (array_length_cname = "chapter_count", array_length_type = "uint32")]
-        public TitleChapter?[] chapters;
+        public TitleChapter[] chapters;
         [CCode (array_length_cname = "mark_count", array_length_type = "uint32")]
         public TitleMark[] marks;
     }
 
     [CCode (cname = "BLURAY_DISC_INFO")]
-    [Compact]
-    public class DiscInfo {
+    public struct DiscInfo {
         [CCode (type = "uint8_t")]
         public bool bluray_detected;
 

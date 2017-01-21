@@ -4,4 +4,6 @@ namespace Gst {
         Pad self,
         owned PadEventFunction function
     );
+
+    public MiniObject mini_object_make_writable (owned MiniObject object);
 }
