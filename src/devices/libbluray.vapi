@@ -110,6 +110,47 @@ namespace Bluray {
         RELEVANT
     }
 
+    [CCode (cname = "uint8_t", cprefix = "BLURAY_TEXT_CHAR_CODE_", has_type_id = false)]
+    public enum CharacterCode {
+        UTF8,
+        UTF16BE,
+        SHIFT_JIS,
+        EUC_KR,
+        GB18030_20001,
+        CN_GB,
+        BIG5
+    }
+
+    [CCode (cname = "uint8_t", cprefix = "BLURAY_STREAM_TYPE_", has_type_id = false)]
+    public enum StreamType {
+        VIDEO_MPEG1,
+        VIDEO_MPEG2,
+        AUDIO_MPEG1,
+        AUDIO_MPEG2,
+        AUDIO_LPCM,
+        AUDIO_AC3,
+        AUDIO_DTS,
+        AUDIO_TRUHD,
+        AUDIO_AC3PLUS,
+        AUDIO_DTSHD,
+        AUDIO_DTSHD_MASTER,
+        VIDEO_VC1,
+        VIDEO_H264,
+        SUB_PG,
+        SUB_IG,
+        SUB_TEXT,
+        AUDIO_AC3PLUS_SECONDARY,
+        AUDIO_DTSHD_SECONDARY
+    }
+
+    [CCode (cname = "uint8_t", has_type_id = false)]
+    public enum AspectRatio {
+        [CCode (cname = "BLURAY_ASPECT_RATIO_4_3", nick = "4:3")]
+        4x3,
+        [CCode (cname = "BLURAY_ASPECT_RATIO_16_9", nick = "16:9")]
+        16x9
+    }
+
     [CCode (cname = "BD_EVENT")]
     public struct Event {
         [CCode (cname = "event")]
@@ -133,14 +174,14 @@ namespace Bluray {
 
     [CCode (cname = "BLURAY_STREAM_INFO")]
     public struct StreamInfo {
-        public uint8 coding_type;
+        public StreamType coding_type;
         public uint8 format;
         public uint8 rate;
-        public uint8 char_code;
-        public uint8 lang[4];
+        public CharacterCode char_code;
+        public string lang;
         public uint16 pid;
-        public uint8 aspect;
-        public uint8 subpath_i;
+        public AspectRatio aspect;
+        public uint8 subpath_id;
     }
 
     [CCode (cname = "BLURAY_CLIP_INFO")]
@@ -233,7 +274,6 @@ namespace Bluray {
 
         public AacsError aacs_error_code;
         public int aacs_mkbv;
-
         public uint8 disc_id[20];
 
         [CCode (type = "uint8_t")]

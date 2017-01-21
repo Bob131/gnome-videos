@@ -17,7 +17,6 @@ abstract class Device : Object {
         while ((file_info = enumerator.next_file ()) != null)
             switch (((!) file_info).get_name ().up ()) {
                 case "BDMV":
-                    message ("Bluray disc detected!");
                     return new BlurayDevice (file);
             }
 

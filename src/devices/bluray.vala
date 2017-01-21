@@ -1,6 +1,11 @@
-class BluraySource : Gst.Base.PushSrc, Gst.TocSetter {
+class BluraySource : Gst.Base.PushSrc {
     Bluray.Disc disc;
+
     bool new_toc;
+    Gst.Toc? toc;
+
+    Gee.HashMap<string, string> language_tags =
+        new Gee.HashMap<string, string> ();
 
     const double BD_TIMEBASE = 90000;
     const double GST_TIMEBASE = Gst.SECOND;
@@ -44,13 +49,22 @@ class BluraySource : Gst.Base.PushSrc, Gst.TocSetter {
                         Gst.mini_object_make_writable (toc_entry));
                 }
 
+                foreach (unowned Bluray.ClipInfo clip in title_info.clips) {
+                    foreach (unowned Bluray.StreamInfo info in clip.audio_streams)
+                        language_tags["%08x".printf (info.pid)] = info.lang;
+                    foreach (unowned Bluray.StreamInfo info in clip.pg_streams)
+                        language_tags["%08x".printf (info.pid)] = info.lang;
+                    foreach (unowned Bluray.StreamInfo info in clip.ig_streams)
+                        language_tags["%08x".printf (info.pid)] = info.lang;
+                }
+
                 new_toc = true;
-                this.set_toc (toc);
+                this.toc = toc;
 
                 break;
 
             default:
-                message (@"Unhandled Bluray event: $(event.type)");
+                debug (@"Unhandled Bluray event: $(event.type)");
                 break;
         }
     }
@@ -113,12 +127,48 @@ class BluraySource : Gst.Base.PushSrc, Gst.TocSetter {
         return base.query (query);
     }
 
+    void correct_stream_language_tags (Gst.Message message) {
+        if (message.src == this)
+            return;
+
+        Gst.StreamCollection streams;
+        message.parse_stream_collection (out streams);
+
+        for (var i = 0; i < streams.get_size (); i++) {
+            var stream = streams.get_stream (i);
+            string stream_id = null_cast (stream.get_stream_id ());
+
+            if (!("/" in stream_id))
+                continue;
+
+            stream_id = stream_id.split ("/")[1];
+
+            if (!language_tags.has_key (stream_id))
+                continue;
+
+            var new_tags = new Gst.TagList.empty ();
+            new_tags.add_value (Gst.TagMergeMode.REPLACE,
+                Gst.Tags.LANGUAGE_CODE, language_tags[stream_id]);
+
+            Gst.TagList tags = null_cast (stream.get_tags ());
+            tags = (!) tags.merge (new_tags, Gst.TagMergeMode.KEEP);
+
+            stream.set_tags (tags);
+        }
+
+        var new_message = new Gst.Message.stream_collection (this, streams);
+        this.post_message (new_message);
+    }
+
     public override bool start () {
         // init event queue
         disc.get_event (null);
 
         disc.get_titles (Bluray.TitleFlags.RELEVANT);
         disc.select_title (disc.get_main_title ());
+
+        Bus.@get ().pipeline_message["stream-collection"].connect (
+            correct_stream_language_tags);
 
         return true;
     }
@@ -128,7 +178,6 @@ class BluraySource : Gst.Base.PushSrc, Gst.TocSetter {
         Gst.State @new,
         Gst.State pending
     ) {
-        var toc = this.get_toc ();
         if (toc != null) {
             var gst_event = new Gst.Event.toc ((!) toc, !new_toc);
             if (new_toc)

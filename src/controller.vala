@@ -20,8 +20,6 @@ class AppController : Object {
         if (file.query_file_type (FileQueryInfoFlags.NONE)
             == FileType.DIRECTORY)
         {
-            message ("Device detected");
-
             try {
                 device = Device.new_from_directory (file);
             } catch (Error e) {
