@@ -1,7 +1,8 @@
 class BluraySource : Gst.Base.PushSrc {
     Bluray.Disc disc;
 
-    const double TIMEBASE = 90000;
+    const double BD_TIMEBASE = 90000;
+    const double GST_TIMEBASE = Gst.SECOND;
 
     Bluray.TitleInfo get_title_info () {
         var ret = disc.get_title_info (disc.get_current_title (),
@@ -11,7 +12,7 @@ class BluraySource : Gst.Base.PushSrc {
     }
 
     int64 bd_time_to_gst (uint64 bd_time) {
-        return (int64) (bd_time / TIMEBASE * Gst.SECOND);
+        return (int64) (bd_time / BD_TIMEBASE * GST_TIMEBASE);
     }
 
     void handle_bd_event (Bluray.Event event) {
@@ -37,6 +38,10 @@ class BluraySource : Gst.Base.PushSrc {
         while (disc.get_event (out event))
             handle_bd_event (event);
 
+        buffer.pts = disc.tell_time ();
+        buffer.offset = disc.tell ();
+        buffer.offset_end = buffer.offset + buffer.get_size ();
+
         var data = new uint8[buffer.get_size ()];
         var ret = disc.read (data);
 
@@ -52,8 +57,7 @@ class BluraySource : Gst.Base.PushSrc {
     public override bool is_seekable () { return true; }
 
     public override bool do_seek (Gst.Segment segment) {
-        message (segment.format.to_string ());
-        disc.seek (segment.position);
+        disc.seek (segment.time);
         return true;
     }
 
@@ -99,6 +103,7 @@ class BluraySource : Gst.Base.PushSrc {
 
     public BluraySource (owned Bluray.Disc disc) {
         this.disc = (owned) disc;
+        this.blocksize = 200 * 192;
     }
 
     class construct {
@@ -106,7 +111,9 @@ class BluraySource : Gst.Base.PushSrc {
             "src",
             Gst.PadDirection.SRC,
             Gst.PadPresence.ALWAYS,
-            Gst.StaticCaps () { @string = "ANY" }
+            Gst.StaticCaps () {
+                @string = "video/mpegts, systemstream=(boolean)true, packetsize=(int)192"
+            }
         };
 
         add_pad_template (src_factory.@get ());
