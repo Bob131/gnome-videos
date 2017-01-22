@@ -165,9 +165,10 @@ class StreamManager : Object {
             }
 
             subtitle_sink.enable_subtitles = true;
-            subtitles.select_child_by_name (selected_name);
 
             stream_selected (subtitles, selected_name);
+
+            subtitles.select_child_by_name (selected_name);
         });
     }
 }
