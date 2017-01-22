@@ -178,7 +178,7 @@ class BluraySource : Gst.Base.PushSrc {
         Gst.State @new,
         Gst.State pending
     ) {
-        if (toc != null) {
+        if (toc != null && @new == Gst.State.PLAYING) {
             var gst_event = new Gst.Event.toc ((!) toc, !new_toc);
             if (new_toc)
                 new_toc = false;
